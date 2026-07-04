@@ -10,6 +10,8 @@ import {
   type RewardTemplate,
   type TaskTemplate,
 } from '../data'
+import AnimatedNumber from './ui/AnimatedNumber'
+import Toast from './ui/Toast'
 
 type Filter = 'all' | LedgerKind
 type TemplateChoice = {
@@ -176,7 +178,7 @@ export default function LogPage() {
       <button className="round-button" type="button" onClick={openAdd} aria-label="补录帷录"><Plus size={21} /></button>
     </div>
 
-    <section className="log-balance"><span>当前残响</span><strong>{loading ? '—' : balance}</strong></section>
+    <section className="log-balance"><span>当前残响</span>{loading ? <strong>—</strong> : <AnimatedNumber value={balance} />}</section>
     <div className="filter-tabs" aria-label="帷录筛选">
       {([['all', '全部'], ['task', '履约'], ['reward', '受赐']] as const).map(([value, label]) =>
         <button className={filter === value ? 'active' : ''} type="button" key={value} onClick={() => setFilter(value)}>{label}</button>,
@@ -230,7 +232,7 @@ export default function LogPage() {
         </form> : <RecordDetails record={selected} flow={balanceFlows.get(selected.id)} onEdit={() => startEdit(selected)} onRemove={() => removeRecord(selected)} />}
       </section>
     </div>}
-    {toast && <div className="toast" role="status">{toast}</div>}
+    <Toast message={toast} />
   </main>
 }
 

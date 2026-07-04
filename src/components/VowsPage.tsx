@@ -12,6 +12,8 @@ import {
   type TaskTemplate,
   type TemplateType,
 } from '../data'
+import AnimatedNumber from './ui/AnimatedNumber'
+import Toast from './ui/Toast'
 
 const ICONS = ['✦', '⚔️', '📜', '🕯️', '🌙', '🗝️', '🜁', '🜂']
 
@@ -148,8 +150,8 @@ export default function VowsPage() {
       </div>
 
       <section className="echo-panel" aria-label="残响总览">
-        <div><span>当前残响</span><strong>{loading ? '—' : balance}</strong></div>
-        <div><span>今日获得残响</span><strong className="today-echo">+{loading ? '—' : todayStats.gained}</strong></div>
+        <div><span>当前残响</span>{loading ? <strong>—</strong> : <AnimatedNumber value={balance} />}</div>
+        <div><span>今日获得残响</span>{loading ? <strong className="today-echo">—</strong> : <AnimatedNumber className="today-echo" prefix="+" value={todayStats.gained} />}</div>
       </section>
 
       {loading ? <p className="loading-copy">正在翻阅档案……</p> : (
@@ -181,7 +183,7 @@ export default function VowsPage() {
           </section>
         </div>
       )}
-      {toast && <div className="toast" role="status">{toast}</div>}
+      <Toast message={toast} />
     </main>
   )
 }

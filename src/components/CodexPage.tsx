@@ -16,6 +16,7 @@ import {
   type TaskTemplate,
   type ThemeMode,
 } from '../data'
+import Toast from './ui/Toast'
 
 type View = 'main' | 'tasks' | 'rewards'
 const REPOSITORY_URL = 'https://github.com/MyKr-YSteinsK/veil-archive'
@@ -102,7 +103,7 @@ export default function CodexPage() {
           <span>{record.iconSnapshot}</span><div><h3>{record.titleSnapshot}</h3><time>{formatDateTime(record.occurredAt)}</time></div>
           <strong className={record.pointsDelta > 0 ? 'positive' : 'negative'}>{record.pointsDelta > 0 ? '+' : ''}{record.pointsDelta} 残响</strong>
         </article>)}</div>}
-      {toast && <div className="toast" role="status">{toast}</div>}
+      <Toast message={toast} />
     </main>
   }
 
@@ -145,7 +146,7 @@ export default function CodexPage() {
         <button className="secondary-button" type="button" onClick={() => setClearStep(0)}>保留档案</button>
       </section>
     </div>}
-    {toast && <div className="toast" role="status">{toast}</div>}
+    <Toast message={toast} />
   </main>
 }
 

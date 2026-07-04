@@ -12,6 +12,8 @@ import {
   type RewardTemplate,
   type TemplateType,
 } from '../data'
+import AnimatedNumber from './ui/AnimatedNumber'
+import Toast from './ui/Toast'
 
 const ICONS = ['◆', '🍷', '🍰', '🎮', '🎵', '📖', '🌒', '🜄']
 
@@ -158,8 +160,8 @@ export default function GivingsPage() {
       </div>
 
       <section className="echo-panel giving-summary" aria-label="残响总览">
-        <div><span>当前残响</span><strong>{loading ? '—' : balance}</strong></div>
-        <div><span>今日消耗残响</span><strong className="spent-echo">-{loading ? '—' : todayStats.spent}</strong></div>
+        <div><span>当前残响</span>{loading ? <strong>—</strong> : <AnimatedNumber value={balance} />}</div>
+        <div><span>今日消耗残响</span>{loading ? <strong className="spent-echo">—</strong> : <AnimatedNumber className="spent-echo" prefix="-" value={todayStats.spent} />}</div>
       </section>
 
       {loading ? <p className="loading-copy">正在翻阅档案……</p> : <>
@@ -187,7 +189,7 @@ export default function GivingsPage() {
           </form>
         </section>
       </div>}
-      {toast && <div className="toast" role="status">{toast}</div>}
+      <Toast message={toast} />
     </main>
   )
 }

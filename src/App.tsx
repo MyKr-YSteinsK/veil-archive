@@ -5,6 +5,7 @@ import GivingsPage from './components/GivingsPage'
 import LogPage from './components/LogPage'
 import CodexPage, { applyTheme } from './components/CodexPage'
 import { settingsService } from './data'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 
 type TabId = 'vows' | 'givings' | 'log' | 'codex'
 type Tab = { id: TabId; label: string; eyebrow: string; title: string; description: string; icon: LucideIcon }
@@ -20,6 +21,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('vows')
   const active = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
   const ActiveIcon = active.icon
+  const reduceMotion = useReducedMotion()
 
   useEffect(() => { settingsService.get().then((settings) => applyTheme(settings.themeMode)).catch(() => undefined) }, [])
 
@@ -29,15 +31,13 @@ export default function App() {
         <div className="sigil" aria-hidden="true">V</div>
         <div><p className="overline">THE VEIL ARCHIVE</p><h1>帷幕档案</h1></div>
       </header>
-      {activeTab === 'vows' ? <VowsPage /> : activeTab === 'givings' ? <GivingsPage /> : activeTab === 'log' ? <LogPage /> : activeTab === 'codex' ? <CodexPage /> : <main className="content" key={active.id}>
-        <p className="section-mark">{active.eyebrow}</p>
-        <h2>{active.title}</h2>
-        <section className="empty-card">
-          <span className="icon-well"><ActiveIcon size={26} strokeWidth={1.4} /></span>
-          <p>{active.description}</p>
-          <small>档案正在静候第一道残响</small>
-        </section>
-      </main>}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div className="page-motion" key={activeTab} initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -3 }} transition={{ duration: reduceMotion ? 0.01 : 0.18 }}>
+          {activeTab === 'vows' ? <VowsPage /> : activeTab === 'givings' ? <GivingsPage /> : activeTab === 'log' ? <LogPage /> : activeTab === 'codex' ? <CodexPage /> : <main className="content">
+            <p className="section-mark">{active.eyebrow}</p><h2>{active.title}</h2><section className="empty-card"><span className="icon-well"><ActiveIcon size={26} strokeWidth={1.4} /></span><p>{active.description}</p><small>档案正在静候第一道残响</small></section>
+          </main>}
+        </motion.div>
+      </AnimatePresence>
       <nav className="tab-bar" aria-label="主要导航">
         {tabs.map((tab) => {
           const Icon = tab.icon
