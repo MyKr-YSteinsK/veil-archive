@@ -1,4 +1,5 @@
 export { db } from './database'
+export { createArchiveCsv } from './csv'
 export {
   calculateBalance,
   calculateStats,

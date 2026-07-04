@@ -151,15 +151,18 @@ export const settingsService = {
     return { ...DEFAULT_SETTINGS }
   },
   async update(changes: Partial<Settings>): Promise<Settings> {
-    const current = await this.get()
-    const settings: Settings = {
-      themeMode: changes.themeMode === undefined ? current.themeMode : requireThemeMode(changes.themeMode),
-      dayStartTime: changes.dayStartTime === undefined ? current.dayStartTime : requireDayStartTime(changes.dayStartTime),
-      appVersion: changes.appVersion === undefined ? current.appVersion : changes.appVersion.trim(),
-    }
-    if (!settings.appVersion) throw new TypeError('appVersion is required')
-    await db.settings.put({ key: SETTINGS_KEY, ...settings })
-    return settings
+    return db.transaction('rw', db.settings, async () => {
+      const stored = await db.settings.get(SETTINGS_KEY)
+      const current: Settings = stored ?? DEFAULT_SETTINGS
+      const settings: Settings = {
+        themeMode: changes.themeMode === undefined ? current.themeMode : requireThemeMode(changes.themeMode),
+        dayStartTime: changes.dayStartTime === undefined ? current.dayStartTime : requireDayStartTime(changes.dayStartTime),
+        appVersion: changes.appVersion === undefined ? current.appVersion : changes.appVersion.trim(),
+      }
+      if (!settings.appVersion) throw new TypeError('appVersion is required')
+      await db.settings.put({ key: SETTINGS_KEY, ...settings })
+      return settings
+    })
   },
   defaults: DEFAULT_SETTINGS,
 }
