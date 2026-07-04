@@ -147,7 +147,7 @@ export const settingsService = {
       return settings
     }
     const initial: StoredSettings = { key: SETTINGS_KEY, ...DEFAULT_SETTINGS }
-    await db.settings.add(initial)
+    await db.settings.put(initial)
     return { ...DEFAULT_SETTINGS }
   },
   async update(changes: Partial<Settings>): Promise<Settings> {
