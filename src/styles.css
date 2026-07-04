@@ -42,26 +42,37 @@ h1 { margin: 3px 0 0; font-family: Georgia, "Noto Serif SC", serif; font-size: 2
 .echo-panel span { color: var(--muted); font-size: 11px; letter-spacing: 0.08em; }
 .echo-panel strong { margin-top: 7px; color: var(--echo); font-family: Georgia, serif; font-size: 30px; font-weight: 400; }
 .echo-panel .today-echo { color: #afa0cf; font-size: 23px; }
+.giving-mark { color: var(--giving); }
+.giving-round { border-color: rgba(183, 110, 60, 0.42); color: #d08a58; background: rgba(183, 110, 60, 0.1); }
+.giving-summary { background: linear-gradient(135deg, rgba(34, 22, 23, 0.98), rgba(15, 14, 21, 0.98)); }
+.echo-panel .spent-echo { color: #cc8050; font-size: 23px; }
 .vow-section { margin-top: 30px; }
 .vow-section > h3 { margin: 0 0 13px; color: var(--muted); font-family: Georgia, "Noto Serif SC", serif; font-size: 15px; font-weight: 500; letter-spacing: 0.1em; }
 .vow-list { display: grid; gap: 12px; }
 .vow-card { display: flex; gap: 14px; padding: 17px; border: 1px solid var(--veil-border); border-radius: 17px; background: linear-gradient(145deg, rgba(23, 19, 31, 0.96), rgba(17, 16, 24, 0.94)); transition: opacity 180ms ease, transform 120ms ease; }
 .vow-card.completed { opacity: 0.54; }
 .vow-card.completed h4 { text-decoration: line-through; }
+.giving-card.unaffordable { border-color: rgba(155, 143, 122, 0.1); }
+.giving-card.unaffordable .vow-icon, .giving-card.unaffordable .vow-title-row { opacity: 0.55; }
 .vow-icon { display: grid; flex: 0 0 44px; width: 44px; height: 44px; place-items: center; border: 1px solid rgba(93, 75, 140, 0.4); border-radius: 13px; background: rgba(93, 75, 140, 0.1); font-size: 21px; }
+.giving-icon { border-color: rgba(183, 110, 60, 0.34); background: rgba(183, 110, 60, 0.09); }
 .vow-main { min-width: 0; flex: 1; }
 .vow-title-row { display: flex; gap: 8px; align-items: start; justify-content: space-between; }
 .vow-title-row h4 { margin: 2px 0 0; overflow-wrap: anywhere; font-family: Georgia, "Noto Serif SC", serif; font-size: 16px; font-weight: 500; }
 .vow-title-row strong { flex: 0 0 auto; color: var(--echo); font-size: 12px; font-weight: 600; }
+.vow-title-row .giving-cost { color: #ca7c49; }
 .vow-main > p { display: flex; gap: 10px; margin: 9px 0 0; color: var(--muted); font-size: 10px; }
 .vow-main > p span { padding-left: 10px; border-left: 1px solid var(--veil-border); }
 .vow-main .fulfilled-mark { align-items: center; color: var(--echo); }
+.vow-main .missing-echo { color: #8d7969; }
 .vow-actions { display: flex; gap: 4px; align-items: center; margin-top: 15px; }
 .text-button { display: flex; gap: 4px; align-items: center; padding: 7px 5px; border: 0; color: var(--muted); background: transparent; font-size: 10px; cursor: pointer; }
 .text-button.danger { color: #a96b72; }
 .fulfill-button, .primary-button { border: 1px solid rgba(201, 163, 91, 0.38); border-radius: 10px; color: #120f0a; background: var(--echo); font-weight: 700; cursor: pointer; }
 .fulfill-button { min-width: 68px; margin-left: auto; padding: 8px 15px; font-size: 12px; }
 .fulfill-button:disabled { border-color: var(--veil-border); color: #70685d; background: #28242b; cursor: default; }
+.receive-button { border-color: rgba(183, 110, 60, 0.48); background: #b76e3c; }
+.receive-button.insufficient { border-color: rgba(155, 143, 122, 0.2); color: #776f66; background: #242127; }
 .section-empty { display: flex; min-height: 76px; align-items: center; justify-content: center; gap: 9px; border: 1px dashed var(--veil-border); border-radius: 15px; color: #6f675e; font-size: 12px; }
 .loading-copy { padding: 40px 0; color: var(--muted); text-align: center; font-size: 12px; }
 .modal-backdrop { position: fixed; z-index: 30; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding-top: 30px; background: rgba(3, 2, 5, 0.76); backdrop-filter: blur(6px); }
@@ -77,6 +88,7 @@ h1 { margin: 3px 0 0; font-family: Georgia, "Noto Serif SC", serif; font-size: 2
 .icon-options button { aspect-ratio: 1; padding: 0; border: 1px solid var(--veil-border); border-radius: 9px; color: var(--ink); background: #0b0a0e; cursor: pointer; }
 .icon-options button.selected { border-color: var(--echo); background: rgba(201, 163, 91, 0.12); }
 .primary-button { min-height: 48px; margin-top: 5px; }
+.giving-primary { border-color: rgba(183, 110, 60, 0.48); background: #b76e3c; }
 .form-error { margin: -5px 0 0; color: #c87b84; font-size: 12px; }
 .toast { position: fixed; z-index: 50; right: 20px; bottom: calc(88px + env(safe-area-inset-bottom)); left: 20px; width: fit-content; max-width: calc(100% - 40px); margin: auto; padding: 12px 17px; border: 1px solid rgba(201, 163, 91, 0.3); border-radius: 12px; color: var(--ink); background: rgba(26, 21, 31, 0.96); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); font-size: 12px; animation: toast-in 180ms ease-out; }
 .empty-card { display: grid; min-height: 290px; place-items: center; align-content: center; padding: 36px 24px; text-align: center; border: 1px solid var(--veil-border); border-radius: 20px; background: linear-gradient(145deg, rgba(23, 19, 31, 0.96), rgba(17, 16, 24, 0.92)); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28); }

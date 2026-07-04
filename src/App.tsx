@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BookOpenText, Gift, ScrollText, Settings2, type LucideIcon } from 'lucide-react'
 import VowsPage from './components/VowsPage'
+import GivingsPage from './components/GivingsPage'
 
 type TabId = 'vows' | 'givings' | 'log' | 'codex'
 type Tab = { id: TabId; label: string; eyebrow: string; title: string; description: string; icon: LucideIcon }
@@ -23,7 +24,7 @@ export default function App() {
         <div className="sigil" aria-hidden="true">V</div>
         <div><p className="overline">THE VEIL ARCHIVE</p><h1>帷幕档案</h1></div>
       </header>
-      {activeTab === 'vows' ? <VowsPage /> : <main className="content" key={active.id}>
+      {activeTab === 'vows' ? <VowsPage /> : activeTab === 'givings' ? <GivingsPage /> : <main className="content" key={active.id}>
         <p className="section-mark">{active.eyebrow}</p>
         <h2>{active.title}</h2>
         <section className="empty-card">
