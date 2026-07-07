@@ -15,11 +15,10 @@ import {
 import AnimatedNumber from './ui/AnimatedNumber'
 import Toast from './ui/Toast'
 import SegmentedTypeSwitch from './ui/SegmentedTypeSwitch'
-
-const ICONS = ['◆', '🍷', '🍰', '🎮', '🎵', '📖', '🌒', '🜄']
+import { GIVING_ICON_OPTIONS, IconGlyph, normalizeIconId } from './ui/iconRegistry'
 
 type GivingForm = { name: string; icon: string; cost: string; type: TemplateType }
-const EMPTY_FORM: GivingForm = { name: '', icon: '◆', cost: '1', type: 'repeatable' }
+const EMPTY_FORM: GivingForm = { name: '', icon: 'relax', cost: '1', type: 'repeatable' }
 
 export default function GivingsPage() {
   const [templates, setTemplates] = useState<RewardTemplate[]>([])
@@ -94,7 +93,7 @@ export default function GivingsPage() {
   }
 
   function openEdit(template: RewardTemplate) {
-    setForm({ name: template.name, icon: template.icon, cost: String(template.cost), type: template.type })
+    setForm({ name: template.name, icon: normalizeIconId(template.icon), cost: String(template.cost), type: template.type })
     setFormError('')
     setEditing(template)
   }
@@ -178,7 +177,7 @@ export default function GivingsPage() {
           </div>
           <form onSubmit={saveGiving}>
             <fieldset className="icon-fieldset"><legend>图标</legend><div className="icon-options">
-              {ICONS.map((icon) => <button className={form.icon === icon ? 'selected' : ''} type="button" key={icon} onClick={() => setForm({ ...form, icon })}>{icon}</button>)}
+              {GIVING_ICON_OPTIONS.map((option) => <button className={normalizeIconId(form.icon) === option.id ? 'selected' : ''} type="button" aria-label={option.label} title={option.label} key={option.id} onClick={() => setForm({ ...form, icon: option.id })}><IconGlyph value={option.id} /></button>)}
             </div></fieldset>
             <label>异赐名称<input required maxLength={30} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="例如：一杯好咖啡" /></label>
             <label>所需残响<input required min="1" step="1" inputMode="numeric" type="number" value={form.cost} onChange={(event) => setForm({ ...form, cost: event.target.value })} /></label>
@@ -215,7 +214,7 @@ function GivingSection({ title, empty, templates, balance, recordsByTemplate, to
       const affordable = balance >= template.cost
       const todayCount = matches.filter((record) => isWithinDay(record.occurredAt, todayWindow)).length
       return <article className={`vow-card giving-card${received ? ' completed' : ''}${!affordable && !received ? ' unaffordable' : ''}`} key={template.id}>
-        <div className="vow-icon giving-icon" aria-hidden="true">{template.icon}</div>
+        <div className="vow-icon giving-icon"><IconGlyph value={template.icon} /></div>
         <div className="vow-main">
           <div className="vow-title-row"><h4>{template.name}</h4><strong className="giving-cost">-{template.cost} 残响</strong></div>
           {template.type === 'repeatable' && <p>今日受赐 ×{todayCount}<span>累计受赐 ×{matches.length}</span></p>}

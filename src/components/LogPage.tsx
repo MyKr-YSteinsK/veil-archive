@@ -12,6 +12,7 @@ import {
 } from '../data'
 import AnimatedNumber from './ui/AnimatedNumber'
 import Toast from './ui/Toast'
+import { IconGlyph } from './ui/iconRegistry'
 
 type Filter = 'all' | LedgerKind
 type TemplateChoice = {
@@ -196,7 +197,7 @@ export default function LogPage() {
           {expanded && <div className="days-list">{month.days.map((day) => <section className="day-group" key={day.key}>
             <h3>{day.label}</h3>
             <div>{day.records.map((record) => <button className="record-row" type="button" key={record.id} onClick={() => openDetails(record)}>
-              <time>{formatTime(record.occurredAt)}</time><span className="record-icon">{record.iconSnapshot}</span><strong>{record.titleSnapshot}</strong>
+              <time>{formatTime(record.occurredAt)}</time><span className={`record-icon ${record.kind}-icon`}><IconGlyph value={record.iconSnapshot} size={17} /></span><strong>{record.titleSnapshot}</strong>
               <b className={record.pointsDelta > 0 ? 'positive' : 'negative'}>{record.pointsDelta > 0 ? '+' : ''}{record.pointsDelta} 残响</b>
             </button>)}</div>
           </section>)}</div>}
@@ -242,7 +243,7 @@ function ModalHeading({ eyebrow, title, titleId, onClose }: { eyebrow: string; t
 
 function RecordDetails({ record, flow, onEdit, onRemove }: { record: LedgerRecord; flow?: { before: number; after: number }; onEdit: () => void; onRemove: () => void }) {
   return <div className="record-details">
-    <div className="record-hero"><span>{record.iconSnapshot}</span><div><small>{record.kind === 'task' ? '履约条目' : '受赐条目'}</small><h4>{record.titleSnapshot}</h4></div><strong className={record.pointsDelta > 0 ? 'positive' : 'negative'}>{record.pointsDelta > 0 ? '+' : ''}{record.pointsDelta}</strong></div>
+    <div className="record-hero"><span className={`${record.kind}-icon`}><IconGlyph value={record.iconSnapshot} size={24} /></span><div><small>{record.kind === 'task' ? '履约条目' : '受赐条目'}</small><h4>{record.titleSnapshot}</h4></div><strong className={record.pointsDelta > 0 ? 'positive' : 'negative'}>{record.pointsDelta > 0 ? '+' : ''}{record.pointsDelta}</strong></div>
     <dl>
       <div><dt>发生时刻</dt><dd>{formatDateTime(record.occurredAt)}</dd></div>
       <div><dt>创建时刻</dt><dd>{formatDateTime(record.createdAt)}</dd></div>

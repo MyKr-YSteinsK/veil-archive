@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.1.0'
+export const APP_VERSION = '1.2.0'
 
 export type ChangelogEntry = {
   version: string
@@ -8,6 +8,18 @@ export type ChangelogEntry = {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '1.2.0',
+    date: '2026-07-07',
+    title: '日常图标系统',
+    items: [
+      '移除誓约、异赐与帷录中的彩色 emoji 图标。',
+      '新增统一的单色线性图标库。',
+      '将图标语义调整为学习、代码、饮食、娱乐、休息与放松等日常行为。',
+      '优化图标选择器、模板卡片与历史记录图标显示。',
+      '兼容旧数据中的 emoji 图标并自动映射为新图标。',
+    ],
+  },
   {
     version: '1.1.0',
     date: '2026-07-07',

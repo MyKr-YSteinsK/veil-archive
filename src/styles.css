@@ -70,8 +70,8 @@ h1 { margin: 3px 0 0; font-family: Georgia, "Noto Serif SC", serif; font-size: 2
 .vow-card.completed h4 { text-decoration: line-through; }
 .giving-card.unaffordable { border-color: rgba(155, 143, 122, 0.1); }
 .giving-card.unaffordable .vow-icon, .giving-card.unaffordable .vow-title-row { opacity: 0.55; }
-.vow-icon { display: grid; flex: 0 0 40px; width: 40px; height: 40px; place-items: center; border: 1px solid rgba(93, 75, 140, 0.4); border-radius: 11px; background: rgba(93, 75, 140, 0.1); font-size: 19px; }
-.giving-icon { border-color: rgba(183, 110, 60, 0.34); background: rgba(183, 110, 60, 0.09); }
+.vow-icon { display: grid; flex: 0 0 40px; width: 40px; height: 40px; place-items: center; border: 1px solid rgba(93, 75, 140, 0.4); border-radius: 11px; color: color-mix(in srgb, var(--echo) 58%, var(--purple)); background: rgba(93, 75, 140, 0.1); }
+.giving-icon { border-color: rgba(183, 110, 60, 0.34); color: var(--giving); background: rgba(183, 110, 60, 0.09); }
 .vow-main { min-width: 0; flex: 1; }
 .vow-title-row { display: flex; gap: 8px; align-items: start; justify-content: space-between; }
 .vow-title-row h4 { margin: 2px 0 0; overflow-wrap: anywhere; font-family: Georgia, "Noto Serif SC", serif; font-size: 16px; font-weight: 500; }
@@ -100,9 +100,10 @@ h1 { margin: 3px 0 0; font-family: Georgia, "Noto Serif SC", serif; font-size: 2
 .vow-modal input, .vow-modal select { width: 100%; min-height: 48px; margin-top: 7px; padding: 13px 14px; border: 1px solid var(--veil-border); border-radius: 11px; outline: none; color: var(--ink); background: var(--veil-black); font-size: 16px; }
 .vow-modal input:focus, .vow-modal select:focus { border-color: rgba(201, 163, 91, 0.55); }
 .icon-fieldset { margin: 0; padding: 0; border: 0; }
-.icon-options { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; margin-top: 8px; }
-.icon-options button { aspect-ratio: 1; min-height: 38px; padding: 0; border: 1px solid var(--veil-border); border-radius: 9px; color: var(--ink); background: var(--veil-black); cursor: pointer; }
+.icon-options { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
+.icon-options button { display: grid; aspect-ratio: 1; min-height: 40px; place-items: center; padding: 0; border: 1px solid var(--veil-border); border-radius: 9px; color: var(--muted); background: var(--veil-black); cursor: pointer; }
 .icon-options button.selected { border-color: var(--echo); background: rgba(201, 163, 91, 0.12); }
+.icon-options button.selected { color: var(--echo); }
 .type-switch { margin: 0; padding: 0; border: 0; }
 .type-switch legend { margin-bottom: 7px; color: var(--muted); font-size: 11px; letter-spacing: 0.06em; }
 .type-switch > div { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border: 1px solid var(--veil-border); border-radius: 12px; background: color-mix(in srgb, var(--veil-black) 78%, var(--veil-raised)); }
@@ -131,6 +132,8 @@ h1 { margin: 3px 0 0; font-family: Georgia, "Noto Serif SC", serif; font-size: 2
 .record-row:active { transform: scale(0.992); background: rgba(201, 163, 91, 0.05); }
 .record-row time { color: #71685e; font-size: 10px; }
 .record-icon { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 9px; background: rgba(93, 75, 140, 0.11); font-size: 15px; }
+.task-icon { color: color-mix(in srgb, var(--echo) 62%, var(--purple)); }
+.reward-icon { color: var(--giving); }
 .record-row > strong { overflow: hidden; font-family: Georgia, "Noto Serif SC", serif; font-size: 13px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
 .record-row b { font-size: 11px; font-weight: 600; }
 .positive { color: var(--echo) !important; }

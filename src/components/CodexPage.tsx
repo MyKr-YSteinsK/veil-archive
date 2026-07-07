@@ -19,6 +19,7 @@ import {
   type ThemeMode,
 } from '../data'
 import Toast from './ui/Toast'
+import { IconGlyph } from './ui/iconRegistry'
 
 type View = 'main' | 'tasks' | 'rewards'
 const REPOSITORY_URL = 'https://github.com/MyKr-YSteinsK/veil-archive'
@@ -103,7 +104,7 @@ export default function CodexPage() {
       <p className="section-mark">ARCHIVE</p><h2>{title}</h2>
       {entries.length === 0 ? <div className="codex-empty"><BookMarked size={24} /><span>尚无条目封存于此</span></div>
         : <div className="archive-list">{entries.map((record) => <article key={record.id}>
-          <span>{record.iconSnapshot}</span><div><h3>{record.titleSnapshot}</h3><time>{formatDateTime(record.occurredAt)}</time></div>
+          <span className={`${record.kind}-icon`}><IconGlyph value={record.iconSnapshot} size={19} /></span><div><h3>{record.titleSnapshot}</h3><time>{formatDateTime(record.occurredAt)}</time></div>
           <strong className={record.pointsDelta > 0 ? 'positive' : 'negative'}>{record.pointsDelta > 0 ? '+' : ''}{record.pointsDelta} 残响</strong>
         </article>)}</div>}
       <Toast message={toast} />

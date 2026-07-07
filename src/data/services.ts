@@ -1,5 +1,6 @@
 import { db, type StoredSettings } from './database'
 import { APP_VERSION } from './changelog'
+import { normalizeIconId } from '../components/ui/iconRegistry'
 import type {
   LedgerRecord,
   LedgerRecordChanges,
@@ -36,7 +37,7 @@ const newId = () => crypto.randomUUID()
 function taskValues(input: NewTaskTemplate) {
   return {
     name: requireName(input.name),
-    icon: requireIcon(input.icon),
+    icon: normalizeIconId(requireIcon(input.icon)),
     points: requirePositiveInteger(input.points, 'points'),
     type: requireTemplateType(input.type),
   }
@@ -45,7 +46,7 @@ function taskValues(input: NewTaskTemplate) {
 function rewardValues(input: NewRewardTemplate) {
   return {
     name: requireName(input.name),
-    icon: requireIcon(input.icon),
+    icon: normalizeIconId(requireIcon(input.icon)),
     cost: requirePositiveInteger(input.cost, 'cost'),
     type: requireTemplateType(input.type),
   }
@@ -112,7 +113,7 @@ export const ledgerRecordService = {
       templateId: input.templateId,
       templateType: requireTemplateType(input.templateType),
       titleSnapshot: requireName(input.titleSnapshot, 'titleSnapshot'),
-      iconSnapshot: requireIcon(input.iconSnapshot),
+      iconSnapshot: normalizeIconId(requireIcon(input.iconSnapshot)),
       pointsDelta: requireLedgerDelta(input.kind, input.pointsDelta),
       occurredAt: requireIsoDate(input.occurredAt, 'occurredAt'),
       createdAt: timestamp,

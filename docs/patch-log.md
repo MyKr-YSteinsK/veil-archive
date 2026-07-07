@@ -109,6 +109,38 @@ Notes:
 
 * The update-ready banner requires a deployed waiting service-worker revision for a full end-to-end trigger.
 
+## 2026-07-07 — Version 1.2.0 daily icon system
+
+Type: feat
+
+Summary:
+
+* Replaced colored emoji template and ledger icons with a unified monochrome Lucide icon system.
+* Added stable icon IDs for daily activities and compatibility mapping for legacy emoji data.
+* Updated vow, giving, ledger, archive, picker, and changelog surfaces to use the new system.
+
+Files:
+
+* `src/components/ui/iconRegistry.tsx`
+* `src/components/VowsPage.tsx`
+* `src/components/GivingsPage.tsx`
+* `src/components/LogPage.tsx`
+* `src/components/CodexPage.tsx`
+* `src/data/services.ts`
+* `src/data/changelog.ts`
+* `src/styles.css`
+* `docs/project-map.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* `npm run build`: pass.
+* Legacy template and ledger icons, icon picker accessibility/touch size, version 1.2.0 changelog, and dark/light themes: pass.
+
+Notes:
+
+* Legacy emoji values remain readable and are normalized to stable icon IDs on future writes.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.

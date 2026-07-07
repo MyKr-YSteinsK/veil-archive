@@ -15,11 +15,10 @@ import {
 import AnimatedNumber from './ui/AnimatedNumber'
 import Toast from './ui/Toast'
 import SegmentedTypeSwitch from './ui/SegmentedTypeSwitch'
-
-const ICONS = ['✦', '⚔️', '📜', '🕯️', '🌙', '🗝️', '🜁', '🜂']
+import { IconGlyph, VOW_ICON_OPTIONS, normalizeIconId } from './ui/iconRegistry'
 
 type VowForm = { name: string; icon: string; points: string; type: TemplateType }
-const EMPTY_FORM: VowForm = { name: '', icon: '✦', points: '1', type: 'repeatable' }
+const EMPTY_FORM: VowForm = { name: '', icon: 'focus', points: '1', type: 'repeatable' }
 
 export default function VowsPage() {
   const [templates, setTemplates] = useState<TaskTemplate[]>([])
@@ -89,7 +88,7 @@ export default function VowsPage() {
   }
 
   function openEdit(template: TaskTemplate) {
-    setForm({ name: template.name, icon: template.icon, points: String(template.points), type: template.type })
+    setForm({ name: template.name, icon: normalizeIconId(template.icon), points: String(template.points), type: template.type })
     setFormError('')
     setEditing(template)
   }
@@ -171,7 +170,7 @@ export default function VowsPage() {
             </div>
             <form onSubmit={saveVow}>
               <fieldset className="icon-fieldset"><legend>图标</legend><div className="icon-options">
-                {ICONS.map((icon) => <button className={form.icon === icon ? 'selected' : ''} type="button" key={icon} onClick={() => setForm({ ...form, icon })}>{icon}</button>)}
+                {VOW_ICON_OPTIONS.map((option) => <button className={normalizeIconId(form.icon) === option.id ? 'selected' : ''} type="button" aria-label={option.label} title={option.label} key={option.id} onClick={() => setForm({ ...form, icon: option.id })}><IconGlyph value={option.id} /></button>)}
               </div></fieldset>
               <label>誓约名称<input required maxLength={30} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="例如：读完一章" /></label>
               <label>残响<input required min="1" step="1" inputMode="numeric" type="number" value={form.points} onChange={(event) => setForm({ ...form, points: event.target.value })} /></label>
@@ -207,7 +206,7 @@ function VowSection({ title, empty, templates, recordsByTemplate, todayWindow, b
       const completed = template.type === 'oneTime' && matches.length > 0
       const todayCount = matches.filter((record) => isWithinDay(record.occurredAt, todayWindow)).length
       return <article className={completed ? 'vow-card completed' : 'vow-card'} key={template.id}>
-        <div className="vow-icon" aria-hidden="true">{template.icon}</div>
+        <div className="vow-icon"><IconGlyph value={template.icon} /></div>
         <div className="vow-main">
           <div className="vow-title-row"><h4>{template.name}</h4><strong>+{template.points} 残响</strong></div>
           {template.type === 'repeatable' && <p>今日履约 ×{todayCount}<span>累计履约 ×{matches.length}</span></p>}

@@ -24,6 +24,7 @@ veil-archive/
 │  ├─ components/
 │  │  ├─ ui/
 │  │  │  ├─ AnimatedNumber.tsx
+│  │  │  ├─ iconRegistry.tsx
 │  │  │  ├─ PwaUpdatePrompt.tsx
 │  │  │  ├─ SegmentedTypeSwitch.tsx
 │  │  │  └─ Toast.tsx
@@ -205,6 +206,16 @@ Responsibilities:
 * Show temporary status messages.
 * Animate toast in/out.
 * Respect reduced-motion preference.
+
+### `src/components/ui/iconRegistry.tsx`
+
+Shared template and ledger icon registry.
+
+Responsibilities:
+
+* Define stable icon IDs and daily-life icon options.
+* Render monochrome Lucide icons consistently.
+* Map legacy emoji values to current icon IDs.
 
 ### `src/components/ui/SegmentedTypeSwitch.tsx`
 
@@ -488,5 +499,17 @@ Likely files:
 * Page components only if DOM structure must change.
 
 Prefer CSS-only visual changes when possible.
+
+### Change template or ledger icons
+
+Likely files:
+
+* `src/components/ui/iconRegistry.tsx`
+* `src/components/VowsPage.tsx`
+* `src/components/GivingsPage.tsx`
+* `src/components/LogPage.tsx`
+* `src/components/CodexPage.tsx`
+* `src/data/services.ts`
+* `src/styles.css`
 
 ---
