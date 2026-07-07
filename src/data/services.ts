@@ -1,4 +1,5 @@
 import { db, type StoredSettings } from './database'
+import { APP_VERSION } from './changelog'
 import type {
   LedgerRecord,
   LedgerRecordChanges,
@@ -26,7 +27,7 @@ const SETTINGS_KEY = 'settings' as const
 const DEFAULT_SETTINGS: Readonly<Settings> = {
   themeMode: 'system',
   dayStartTime: '00:00',
-  appVersion: '1.0.0',
+  appVersion: APP_VERSION,
 }
 
 const now = () => new Date().toISOString()
@@ -143,7 +144,9 @@ export const settingsService = {
   async get(): Promise<Settings> {
     const stored = await db.settings.get(SETTINGS_KEY)
     if (stored) {
-      const { key: _key, ...settings } = stored
+      const { key: _key, ...storedSettings } = stored
+      const settings = { ...storedSettings, appVersion: APP_VERSION }
+      if (stored.appVersion !== APP_VERSION) await db.settings.put({ ...stored, appVersion: APP_VERSION })
       return settings
     }
     const initial: StoredSettings = { key: SETTINGS_KEY, ...DEFAULT_SETTINGS }
@@ -157,9 +160,8 @@ export const settingsService = {
       const settings: Settings = {
         themeMode: changes.themeMode === undefined ? current.themeMode : requireThemeMode(changes.themeMode),
         dayStartTime: changes.dayStartTime === undefined ? current.dayStartTime : requireDayStartTime(changes.dayStartTime),
-        appVersion: changes.appVersion === undefined ? current.appVersion : changes.appVersion.trim(),
+        appVersion: APP_VERSION,
       }
-      if (!settings.appVersion) throw new TypeError('appVersion is required')
       await db.settings.put({ key: SETTINGS_KEY, ...settings })
       return settings
     })

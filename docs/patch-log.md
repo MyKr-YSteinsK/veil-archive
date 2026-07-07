@@ -74,6 +74,41 @@ Notes:
 * Backup currently uses CSV export only.
 * No import/restore flow exists yet.
 
+## 2026-07-07 — Version 1.1.0 UI and update hardening
+
+Type: feat
+
+Summary:
+
+* Added a lightweight PWA update-ready prompt with an explicit restart action.
+* Made the displayed app version code-owned and advanced it to 1.1.0.
+* Added a local in-app changelog to 源典.
+* Redesigned residual-echo summaries and tightened vow/giving card density.
+* Replaced native template-type selects with accessible animated segmented controls.
+* Corrected parchment-theme surfaces, borders, dividers, filters, and bottom navigation contrast.
+
+Files:
+
+* `src/pwaUpdate.ts`
+* `src/data/changelog.ts`
+* `src/data/services.ts`
+* `src/components/ui/PwaUpdatePrompt.tsx`
+* `src/components/ui/SegmentedTypeSwitch.tsx`
+* `src/components/VowsPage.tsx`
+* `src/components/GivingsPage.tsx`
+* `src/components/CodexPage.tsx`
+* `src/styles.css`
+* `vite.config.ts`
+
+Verification:
+
+* `npm run build`: pass.
+* Mobile dark/light theme, segmented create/edit flows, version display, and changelog: pass.
+
+Notes:
+
+* The update-ready banner requires a deployed waiting service-worker revision for a full end-to-end trigger.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.

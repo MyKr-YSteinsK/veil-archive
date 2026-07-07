@@ -14,6 +14,7 @@ import {
 } from '../data'
 import AnimatedNumber from './ui/AnimatedNumber'
 import Toast from './ui/Toast'
+import SegmentedTypeSwitch from './ui/SegmentedTypeSwitch'
 
 const ICONS = ['◆', '🍷', '🍰', '🎮', '🎵', '📖', '🌒', '🜄']
 
@@ -160,8 +161,8 @@ export default function GivingsPage() {
       </div>
 
       <section className="echo-panel giving-summary" aria-label="残响总览">
-        <div><span>当前残响</span>{loading ? <strong>—</strong> : <AnimatedNumber value={balance} />}</div>
-        <div><span>今日消耗残响</span>{loading ? <strong className="spent-echo">—</strong> : <AnimatedNumber className="spent-echo" prefix="-" value={todayStats.spent} />}</div>
+        <div className="echo-primary"><span>当前残响</span>{loading ? <strong>—</strong> : <AnimatedNumber value={balance} />}<small>由全部帷录推演</small></div>
+        <div className="echo-secondary"><span>今日消耗</span>{loading ? <strong className="spent-echo">—</strong> : <AnimatedNumber className="spent-echo" prefix="-" value={todayStats.spent} />}<small>自昼夜分界起</small></div>
       </section>
 
       {loading ? <p className="loading-copy">正在翻阅档案……</p> : <>
@@ -181,9 +182,7 @@ export default function GivingsPage() {
             </div></fieldset>
             <label>异赐名称<input required maxLength={30} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="例如：一杯好咖啡" /></label>
             <label>所需残响<input required min="1" step="1" inputMode="numeric" type="number" value={form.cost} onChange={(event) => setForm({ ...form, cost: event.target.value })} /></label>
-            <label>异赐类型<select value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value as TemplateType })}>
-              <option value="repeatable">恒常异赐</option><option value="oneTime">独一异赐</option>
-            </select></label>
+            <SegmentedTypeSwitch label="异赐类型" value={form.type} repeatableLabel="恒常异赐" oneTimeLabel="独一异赐" onChange={(type) => setForm({ ...form, type })} />
             {formError && <p className="form-error" role="alert">{formError}</p>}
             <button className="primary-button giving-primary" type="submit">{editing ? '保存修订' : '录入异赐'}</button>
           </form>
@@ -225,7 +224,7 @@ function GivingSection({ title, empty, templates, balance, recordsByTemplate, to
           <div className="vow-actions">
             <button className="text-button" type="button" onClick={() => onEdit(template)}><Edit3 size={15} />修订</button>
             <button className="text-button danger" type="button" onClick={() => onRemove(template)}><Trash2 size={15} />抹除</button>
-            <button className={`fulfill-button receive-button${!affordable && !received ? ' insufficient' : ''}`} type="button" disabled={received || busyId === template.id} aria-disabled={!affordable || received} onClick={() => onReceive(template)}>{received ? '已受赐' : '受赐'}</button>
+            <button className={`fulfill-button receive-button${!affordable && !received ? ' insufficient' : ''}`} type="button" disabled={received || busyId === template.id} aria-disabled={!affordable || received} aria-busy={busyId === template.id} onClick={() => onReceive(template)}>{received ? '已受赐' : busyId === template.id ? '受赐中…' : '受赐'}</button>
           </div>
         </div>
       </article>

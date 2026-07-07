@@ -24,6 +24,8 @@ veil-archive/
 │  ├─ components/
 │  │  ├─ ui/
 │  │  │  ├─ AnimatedNumber.tsx
+│  │  │  ├─ PwaUpdatePrompt.tsx
+│  │  │  ├─ SegmentedTypeSwitch.tsx
 │  │  │  └─ Toast.tsx
 │  │  ├─ CodexPage.tsx
 │  │  ├─ GivingsPage.tsx
@@ -31,6 +33,7 @@ veil-archive/
 │  │  └─ VowsPage.tsx
 │  ├─ data/
 │  │  ├─ calculations.ts
+│  │  ├─ changelog.ts
 │  │  ├─ csv.ts
 │  │  ├─ database.ts
 │  │  ├─ index.ts
@@ -39,6 +42,7 @@ veil-archive/
 │  │  └─ validation.ts
 │  ├─ App.tsx
 │  ├─ main.tsx
+│  ├─ pwaUpdate.ts
 │  └─ styles.css
 ├─ .gitignore
 ├─ AGENTS.md
@@ -202,6 +206,25 @@ Responsibilities:
 * Animate toast in/out.
 * Respect reduced-motion preference.
 
+### `src/components/ui/SegmentedTypeSwitch.tsx`
+
+Shared accessible template-type selector.
+
+Responsibilities:
+
+* Switch between `repeatable` and `oneTime` with real buttons.
+* Expose `aria-pressed` state.
+* Animate the active segment while respecting reduced motion.
+
+### `src/components/ui/PwaUpdatePrompt.tsx`
+
+Shared non-intrusive PWA update banner.
+
+Responsibilities:
+
+* Show when a waiting service worker is ready.
+* Let the user activate the update and restart the app.
+
 ## 4. Data/storage entry points
 
 ### `src/data/types.ts`
@@ -299,6 +322,25 @@ Current responsibilities:
 Public barrel export for data modules.
 
 Use this to keep component imports clean.
+
+### `src/data/changelog.ts`
+
+Owns code-level app metadata.
+
+Responsibilities:
+
+* Export the current `APP_VERSION`.
+* Store the static in-app version history.
+
+### `src/pwaUpdate.ts`
+
+Bridges `vite-plugin-pwa` registration to React UI.
+
+Responsibilities:
+
+* Track idle, ready, and updating service-worker states.
+* Expose a small subscription API for the update prompt.
+* Activate the waiting service worker on user action.
 
 ## 5. Styling/theme entry points
 

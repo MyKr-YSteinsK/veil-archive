@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowLeft, BookMarked, ChevronRight, Clock3, Download, ExternalLink, Flame,
-  Info, MoonStar, Palette, ScrollText, Sun, X,
+  History, Info, MoonStar, Palette, ScrollText, Sun, X,
 } from 'lucide-react'
 import {
+  APP_VERSION,
+  CHANGELOG,
   clearAllData,
   createArchiveCsv,
   ledgerRecordService,
@@ -28,6 +30,7 @@ export default function CodexPage() {
   const [records, setRecords] = useState<LedgerRecord[]>([])
   const [view, setView] = useState<View>('main')
   const [clearStep, setClearStep] = useState<0 | 1 | 2>(0)
+  const [showChangelog, setShowChangelog] = useState(false)
   const [toast, setToast] = useState('')
 
   const refresh = useCallback(async () => {
@@ -131,7 +134,8 @@ export default function CodexPage() {
     </div></section>
 
     <section className="codex-section"><h3>关于</h3><div className="codex-card info-card">
-      <div className="setting-row"><span className="setting-icon"><Info size={18} /></span><span><strong>密典版本</strong><small>{settings.appVersion}</small></span></div>
+      <div className="setting-row"><span className="setting-icon"><Info size={18} /></span><span><strong>密典版本</strong><small>{APP_VERSION}</small></span></div>
+      <CodexButton icon={<History size={18} />} title="更新日志" meta={`v${APP_VERSION}`} onClick={() => setShowChangelog(true)} />
       <div className="info-line"><span>书写者</span><strong>MyKr-YSteinsK</strong></div>
       <a className="info-line" href={REPOSITORY_URL} target="_blank" rel="noreferrer"><span>源典入口</span><strong>GitHub <ExternalLink size={13} /></strong></a>
       <p className="project-note">《帷幕档案》是一部关于誓约、残响与异赐的私人档案。它不审判，只存录。</p>
@@ -144,6 +148,16 @@ export default function CodexPage() {
         {clearStep === 1 ? <button className="danger-button" type="button" onClick={() => setClearStep(2)}>我已知晓，继续</button>
           : <><p className="final-warning">这是最后一道门。确认后无法找回任何数据。</p><button className="danger-button solid" type="button" onClick={burnCodex}>确认焚毁</button></>}
         <button className="secondary-button" type="button" onClick={() => setClearStep(0)}>保留档案</button>
+      </section>
+    </div>}
+    {showChangelog && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setShowChangelog(false)}>
+      <section className="vow-modal changelog-modal" role="dialog" aria-modal="true" aria-labelledby="changelog-title">
+        <div className="modal-heading"><div><p className="section-mark">REVISIONS</p><h3 id="changelog-title">更新日志</h3></div><button className="icon-button" type="button" onClick={() => setShowChangelog(false)} aria-label="关闭"><X size={20} /></button></div>
+        <div className="changelog-list">{CHANGELOG.map((entry) => <article key={entry.version}>
+          <header><span>v{entry.version}</span><time>{entry.date}</time></header>
+          <h4>{entry.title}</h4>
+          <ul>{entry.items.map((item) => <li key={item}>{item}</li>)}</ul>
+        </article>)}</div>
       </section>
     </div>}
     <Toast message={toast} />

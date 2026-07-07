@@ -6,6 +6,7 @@ import LogPage from './components/LogPage'
 import CodexPage, { applyTheme } from './components/CodexPage'
 import { settingsService } from './data'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import PwaUpdatePrompt from './components/ui/PwaUpdatePrompt'
 
 type TabId = 'vows' | 'givings' | 'log' | 'codex'
 type Tab = { id: TabId; label: string; eyebrow: string; title: string; description: string; icon: LucideIcon }
@@ -38,6 +39,7 @@ export default function App() {
           </main>}
         </motion.div>
       </AnimatePresence>
+      <PwaUpdatePrompt />
       <nav className="tab-bar" aria-label="主要导航">
         {tabs.map((tab) => {
           const Icon = tab.icon
