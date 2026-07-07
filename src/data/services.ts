@@ -1,6 +1,7 @@
 import { db, type StoredSettings } from './database'
 import { APP_VERSION } from './changelog'
 import { normalizeIconId } from '../components/ui/iconRegistry'
+import { createNextSortOrder, produceReorderPatch } from './templateOrdering'
 import type {
   LedgerRecord,
   LedgerRecordChanges,
@@ -59,7 +60,8 @@ export const taskTemplateService = {
   get: (id: string) => db.taskTemplates.get(id),
   async create(input: NewTaskTemplate): Promise<TaskTemplate> {
     const timestamp = now()
-    const item: TaskTemplate = { id: newId(), ...taskValues(input), createdAt: timestamp, updatedAt: timestamp }
+    const existing = await taskTemplateService.list()
+    const item: TaskTemplate = { id: newId(), ...taskValues(input), sortOrder: createNextSortOrder(existing, input.type), pinned: false, createdAt: timestamp, updatedAt: timestamp }
     await db.taskTemplates.add(item)
     return item
   },
@@ -75,6 +77,26 @@ export const taskTemplateService = {
     const changed = await db.taskTemplates.update(id, { deletedAt: timestamp, updatedAt: timestamp })
     if (!changed) throw new Error('Task template not found')
   },
+  async setPinned(id: string, pinned: boolean): Promise<void> {
+    const [current, existing] = await Promise.all([db.taskTemplates.get(id), taskTemplateService.list()])
+    if (!current) throw new Error('Task template not found')
+    await db.taskTemplates.update(id, {
+      pinned,
+      sortOrder: createNextSortOrder(existing.filter((item) => item.id !== id), current.type, pinned),
+      updatedAt: now(),
+    })
+  },
+  async reorder(idsInNewOrder: string[]): Promise<void> {
+    if (idsInNewOrder.length < 2) return
+    await db.transaction('rw', db.taskTemplates, async () => {
+      const items = await db.taskTemplates.bulkGet(idsInNewOrder)
+      if (items.some((item) => !item)) throw new Error('Task template not found')
+      const first = items[0]!
+      if (items.some((item) => item!.type !== first.type || Boolean(item!.pinned) !== Boolean(first.pinned))) throw new Error('Task templates must share an ordering group')
+      const timestamp = now()
+      await Promise.all(produceReorderPatch(idsInNewOrder).map(({ id, sortOrder }) => db.taskTemplates.update(id, { sortOrder, updatedAt: timestamp })))
+    })
+  },
 }
 
 export const rewardTemplateService = {
@@ -84,7 +106,8 @@ export const rewardTemplateService = {
   get: (id: string) => db.rewardTemplates.get(id),
   async create(input: NewRewardTemplate): Promise<RewardTemplate> {
     const timestamp = now()
-    const item: RewardTemplate = { id: newId(), ...rewardValues(input), createdAt: timestamp, updatedAt: timestamp }
+    const existing = await rewardTemplateService.list()
+    const item: RewardTemplate = { id: newId(), ...rewardValues(input), sortOrder: createNextSortOrder(existing, input.type), pinned: false, createdAt: timestamp, updatedAt: timestamp }
     await db.rewardTemplates.add(item)
     return item
   },
@@ -99,6 +122,26 @@ export const rewardTemplateService = {
     const timestamp = now()
     const changed = await db.rewardTemplates.update(id, { deletedAt: timestamp, updatedAt: timestamp })
     if (!changed) throw new Error('Reward template not found')
+  },
+  async setPinned(id: string, pinned: boolean): Promise<void> {
+    const [current, existing] = await Promise.all([db.rewardTemplates.get(id), rewardTemplateService.list()])
+    if (!current) throw new Error('Reward template not found')
+    await db.rewardTemplates.update(id, {
+      pinned,
+      sortOrder: createNextSortOrder(existing.filter((item) => item.id !== id), current.type, pinned),
+      updatedAt: now(),
+    })
+  },
+  async reorder(idsInNewOrder: string[]): Promise<void> {
+    if (idsInNewOrder.length < 2) return
+    await db.transaction('rw', db.rewardTemplates, async () => {
+      const items = await db.rewardTemplates.bulkGet(idsInNewOrder)
+      if (items.some((item) => !item)) throw new Error('Reward template not found')
+      const first = items[0]!
+      if (items.some((item) => item!.type !== first.type || Boolean(item!.pinned) !== Boolean(first.pinned))) throw new Error('Reward templates must share an ordering group')
+      const timestamp = now()
+      await Promise.all(produceReorderPatch(idsInNewOrder).map(({ id, sortOrder }) => db.rewardTemplates.update(id, { sortOrder, updatedAt: timestamp })))
+    })
   },
 }
 

@@ -8,6 +8,8 @@ export type TaskTemplate = {
   icon: string
   points: number
   type: TemplateType
+  sortOrder?: number
+  pinned?: boolean
   createdAt: string
   updatedAt: string
   deletedAt?: string
@@ -19,6 +21,8 @@ export type RewardTemplate = {
   icon: string
   cost: number
   type: TemplateType
+  sortOrder?: number
+  pinned?: boolean
   createdAt: string
   updatedAt: string
   deletedAt?: string

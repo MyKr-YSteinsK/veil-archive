@@ -27,6 +27,7 @@ veil-archive/
 │  │  │  ├─ iconRegistry.tsx
 │  │  │  ├─ PwaUpdatePrompt.tsx
 │  │  │  ├─ SegmentedTypeSwitch.tsx
+│  │  │  ├─ TemplateReorderGroup.tsx
 │  │  │  └─ Toast.tsx
 │  │  ├─ CodexPage.tsx
 │  │  ├─ GivingsPage.tsx
@@ -39,6 +40,7 @@ veil-archive/
 │  │  ├─ database.ts
 │  │  ├─ index.ts
 │  │  ├─ services.ts
+│  │  ├─ templateOrdering.ts
 │  │  ├─ types.ts
 │  │  └─ validation.ts
 │  ├─ App.tsx
@@ -236,6 +238,16 @@ Responsibilities:
 * Show when a waiting service worker is ready.
 * Let the user activate the update and restart the app.
 
+### `src/components/ui/TemplateReorderGroup.tsx`
+
+Shared drag-handle ordering group for template cards.
+
+Responsibilities:
+
+* Animate local list movement with Framer Motion.
+* Start drag only from the dedicated handle.
+* Persist changed order after drag release.
+
 ## 4. Data/storage entry points
 
 ### `src/data/types.ts`
@@ -300,6 +312,16 @@ Current responsibilities:
 * One-time template usage check.
 
 This is the best place for unit tests.
+
+### `src/data/templateOrdering.ts`
+
+Owns pure template ordering rules.
+
+Responsibilities:
+
+* Sort pinned templates before unpinned templates.
+* Apply stable manual-order fallbacks for legacy data.
+* Produce reorder patches and next-order values.
 
 ### `src/data/validation.ts`
 

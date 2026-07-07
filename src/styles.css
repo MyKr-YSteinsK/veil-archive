@@ -64,7 +64,12 @@ h1 { margin: 3px 0 0; font-family: Georgia, "Noto Serif SC", serif; font-size: 2
 .vow-section { margin-top: 30px; }
 .vow-section > h3 { margin: 0 0 13px; color: var(--muted); font-family: Georgia, "Noto Serif SC", serif; font-size: 15px; font-weight: 500; letter-spacing: 0.1em; }
 .vow-list { display: grid; gap: 10px; }
+.template-reorder-group { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.template-reorder-item { position: relative; list-style: none; }
+.template-reorder-item.dragging { z-index: 5; }
+.template-reorder-item.dragging .vow-card { border-color: color-mix(in srgb, var(--echo) 62%, var(--veil-border)); box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28); }
 .vow-card { display: flex; gap: 11px; padding: 14px; border: 1px solid var(--veil-border); border-radius: 15px; background: color-mix(in srgb, var(--veil-card) 92%, var(--veil-raised)); transition: border-color 180ms ease, box-shadow 180ms ease, opacity 180ms ease, transform 120ms ease; }
+.vow-card.pinned { border-color: color-mix(in srgb, var(--echo) 38%, var(--veil-border)); }
 .vow-card:active { transform: scale(0.988); }
 .vow-card.completed { opacity: 0.54; }
 .vow-card.completed h4 { text-decoration: line-through; }
@@ -84,6 +89,10 @@ h1 { margin: 3px 0 0; font-family: Georgia, "Noto Serif SC", serif; font-size: 2
 .vow-actions { display: flex; gap: 3px; align-items: center; margin-top: 10px; }
 .text-button { display: flex; min-height: 34px; gap: 4px; align-items: center; padding: 6px 5px; border: 0; color: var(--muted); background: transparent; font-size: 10px; cursor: pointer; }
 .text-button.danger { color: #a96b72; }
+.drag-handle, .pin-button { display: grid; width: 32px; min-width: 32px; min-height: 34px; place-items: center; padding: 0; border: 0; color: var(--muted); background: transparent; cursor: grab; touch-action: none; }
+.drag-handle:active { cursor: grabbing; }
+.pin-button { cursor: pointer; touch-action: manipulation; }
+.pin-button.active { color: var(--echo); }
 .fulfill-button, .primary-button { border: 1px solid rgba(201, 163, 91, 0.38); border-radius: 10px; color: #120f0a; background: var(--echo); font-weight: 700; cursor: pointer; }
 .fulfill-button { min-width: 72px; min-height: 36px; margin-left: auto; padding: 7px 13px; font-size: 12px; }
 .fulfill-button:disabled { border-color: var(--veil-border); color: var(--muted); background: color-mix(in srgb, var(--veil-card) 80%, var(--muted)); cursor: default; }

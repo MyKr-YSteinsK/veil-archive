@@ -141,6 +141,40 @@ Notes:
 
 * Legacy emoji values remain readable and are normalized to stable icon IDs on future writes.
 
+## 2026-07-07 — 1.3.0 template ordering and pinning
+
+Type: feat
+
+Summary:
+
+* Added independent manual ordering for repeatable and one-time vow and giving templates.
+* Added persisted template pinning with pinned-first display.
+* Added handle-based drag reordering with smooth movement and local IndexedDB persistence.
+* Updated 密典版本 and the in-app changelog to 1.3.0.
+
+Files:
+
+* `src/data/types.ts`
+* `src/data/templateOrdering.ts`
+* `src/data/services.ts`
+* `src/data/index.ts`
+* `src/components/ui/TemplateReorderGroup.tsx`
+* `src/components/VowsPage.tsx`
+* `src/components/GivingsPage.tsx`
+* `src/data/changelog.ts`
+* `src/styles.css`
+* `docs/project-map.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* `npm run build`: pass.
+* Mobile vow/giving reorder persistence, pin/unpin persistence, theme coherence, and fulfill/receive ledger snapshots: pass.
+
+Notes:
+
+* Dragging starts from the dedicated handle; pinned and unpinned groups reorder independently.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.

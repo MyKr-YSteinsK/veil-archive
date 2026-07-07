@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Check, Edit3, Gift, Plus, Trash2, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { Check, Edit3, Gift, Pin, PinOff, Plus, Trash2, X } from 'lucide-react'
 import {
   calculateBalance,
   calculateTodayStats,
+  compareTemplates,
   getDayWindow,
   isWithinDay,
   ledgerRecordService,
@@ -16,6 +17,7 @@ import AnimatedNumber from './ui/AnimatedNumber'
 import Toast from './ui/Toast'
 import SegmentedTypeSwitch from './ui/SegmentedTypeSwitch'
 import { GIVING_ICON_OPTIONS, IconGlyph, normalizeIconId } from './ui/iconRegistry'
+import TemplateReorderGroup from './ui/TemplateReorderGroup'
 
 type GivingForm = { name: string; icon: string; cost: string; type: TemplateType }
 const EMPTY_FORM: GivingForm = { name: '', icon: 'relax', cost: '1', type: 'repeatable' }
@@ -68,22 +70,17 @@ export default function GivingsPage() {
     return map
   }, [rewardRecords])
 
-  const sortGivings = useCallback((items: RewardTemplate[]) => items.sort((a, b) => {
-    const affordableDifference = Number(b.cost <= balance) - Number(a.cost <= balance)
-    return affordableDifference || a.cost - b.cost
-  }), [balance])
-
   const repeatable = useMemo(
-    () => sortGivings(templates.filter((template) => template.type === 'repeatable')),
-    [sortGivings, templates],
+    () => templates.filter((template) => template.type === 'repeatable').sort(compareTemplates),
+    [templates],
   )
   const oneTime = useMemo(
-    () => sortGivings(templates.filter((template) => {
+    () => templates.filter((template) => {
       if (template.type !== 'oneTime') return false
       const receipt = recordsByTemplate.get(template.id)?.[0]
       return !receipt || isWithinDay(receipt.occurredAt, todayWindow)
-    })),
-    [recordsByTemplate, sortGivings, templates, todayWindow],
+    }).sort(compareTemplates),
+    [recordsByTemplate, templates, todayWindow],
   )
 
   function openCreate() {
@@ -121,6 +118,26 @@ export default function GivingsPage() {
       setToast('异赐已从当前档案中抹除')
     } catch {
       setToast('抹除失败，请稍后重试')
+    }
+  }
+
+  async function togglePinned(template: RewardTemplate) {
+    try {
+      await rewardTemplateService.setPinned(template.id, !template.pinned)
+      await refresh()
+      setToast(template.pinned ? '异赐已取消置顶' : '异赐已置顶')
+    } catch {
+      setToast('置顶状态保存失败')
+    }
+  }
+
+  async function reorderGivings(ids: string[]) {
+    try {
+      await rewardTemplateService.reorder(ids)
+      await refresh()
+    } catch {
+      setToast('异赐排序保存失败')
+      await refresh()
     }
   }
 
@@ -165,8 +182,8 @@ export default function GivingsPage() {
       </section>
 
       {loading ? <p className="loading-copy">正在翻阅档案……</p> : <>
-        <GivingSection title="恒常异赐" empty="尚无恒常异赐" templates={repeatable} balance={balance} recordsByTemplate={recordsByTemplate} todayWindow={todayWindow} busyId={busyId} onReceive={receive} onEdit={openEdit} onRemove={removeGiving} />
-        <GivingSection title="独一异赐" empty="尚无独一异赐" templates={oneTime} balance={balance} recordsByTemplate={recordsByTemplate} todayWindow={todayWindow} busyId={busyId} onReceive={receive} onEdit={openEdit} onRemove={removeGiving} />
+        <GivingSection title="恒常异赐" empty="尚无恒常异赐" templates={repeatable} balance={balance} recordsByTemplate={recordsByTemplate} todayWindow={todayWindow} busyId={busyId} onReceive={receive} onEdit={openEdit} onRemove={removeGiving} onPin={togglePinned} onReorder={reorderGivings} />
+        <GivingSection title="独一异赐" empty="尚无独一异赐" templates={oneTime} balance={balance} recordsByTemplate={recordsByTemplate} todayWindow={todayWindow} busyId={busyId} onReceive={receive} onEdit={openEdit} onRemove={removeGiving} onPin={togglePinned} onReorder={reorderGivings} />
       </>}
 
       {editing !== undefined && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setEditing(undefined)}>
@@ -203,31 +220,41 @@ type GivingSectionProps = {
   onReceive: (template: RewardTemplate) => void
   onEdit: (template: RewardTemplate) => void
   onRemove: (template: RewardTemplate) => void
+  onPin: (template: RewardTemplate) => void
+  onReorder: (ids: string[]) => Promise<void>
 }
 
-function GivingSection({ title, empty, templates, balance, recordsByTemplate, todayWindow, busyId, onReceive, onEdit, onRemove }: GivingSectionProps) {
+function GivingSection({ title, empty, templates, balance, recordsByTemplate, todayWindow, busyId, onReceive, onEdit, onRemove, onPin, onReorder }: GivingSectionProps) {
+  const renderCard = (template: RewardTemplate, dragHandle: ReactNode) => {
+    const matches = recordsByTemplate.get(template.id) ?? []
+    const received = template.type === 'oneTime' && matches.length > 0
+    const affordable = balance >= template.cost
+    const todayCount = matches.filter((record) => isWithinDay(record.occurredAt, todayWindow)).length
+    return <article className={`vow-card giving-card${received ? ' completed' : ''}${!affordable && !received ? ' unaffordable' : ''}${template.pinned ? ' pinned' : ''}`}>
+      <div className="vow-icon giving-icon"><IconGlyph value={template.icon} /></div>
+      <div className="vow-main">
+        <div className="vow-title-row"><h4>{template.name}</h4><strong className="giving-cost">-{template.cost} 残响</strong></div>
+        {template.type === 'repeatable' && <p>今日受赐 ×{todayCount}<span>累计受赐 ×{matches.length}</span></p>}
+        {received && <p className="fulfilled-mark"><Check size={14} /> 今日已受赐</p>}
+        {!affordable && !received && <p className="missing-echo">还缺 {template.cost - balance} 残响</p>}
+        <div className="vow-actions">
+          {dragHandle}
+          <button className={`text-button pin-button${template.pinned ? ' active' : ''}`} type="button" aria-label={template.pinned ? '取消置顶' : '置顶'} aria-pressed={Boolean(template.pinned)} onClick={() => onPin(template)}>{template.pinned ? <PinOff size={15} /> : <Pin size={15} />}</button>
+          <button className="text-button" type="button" onClick={() => onEdit(template)}><Edit3 size={15} />修订</button>
+          <button className="text-button danger" type="button" onClick={() => onRemove(template)}><Trash2 size={15} />抹除</button>
+          <button className={`fulfill-button receive-button${!affordable && !received ? ' insufficient' : ''}`} type="button" disabled={received || busyId === template.id} aria-disabled={!affordable || received} aria-busy={busyId === template.id} onClick={() => onReceive(template)}>{received ? '已受赐' : busyId === template.id ? '受赐中…' : '受赐'}</button>
+        </div>
+      </div>
+    </article>
+  }
+  const pinned = templates.filter((template) => template.pinned)
+  const unpinned = templates.filter((template) => !template.pinned)
   return <section className="vow-section"><h3>{title}</h3>{templates.length === 0
     ? <div className="section-empty"><Gift size={18} /><span>{empty}</span></div>
-    : <div className="vow-list">{templates.map((template) => {
-      const matches = recordsByTemplate.get(template.id) ?? []
-      const received = template.type === 'oneTime' && matches.length > 0
-      const affordable = balance >= template.cost
-      const todayCount = matches.filter((record) => isWithinDay(record.occurredAt, todayWindow)).length
-      return <article className={`vow-card giving-card${received ? ' completed' : ''}${!affordable && !received ? ' unaffordable' : ''}`} key={template.id}>
-        <div className="vow-icon giving-icon"><IconGlyph value={template.icon} /></div>
-        <div className="vow-main">
-          <div className="vow-title-row"><h4>{template.name}</h4><strong className="giving-cost">-{template.cost} 残响</strong></div>
-          {template.type === 'repeatable' && <p>今日受赐 ×{todayCount}<span>累计受赐 ×{matches.length}</span></p>}
-          {received && <p className="fulfilled-mark"><Check size={14} /> 今日已受赐</p>}
-          {!affordable && !received && <p className="missing-echo">还缺 {template.cost - balance} 残响</p>}
-          <div className="vow-actions">
-            <button className="text-button" type="button" onClick={() => onEdit(template)}><Edit3 size={15} />修订</button>
-            <button className="text-button danger" type="button" onClick={() => onRemove(template)}><Trash2 size={15} />抹除</button>
-            <button className={`fulfill-button receive-button${!affordable && !received ? ' insufficient' : ''}`} type="button" disabled={received || busyId === template.id} aria-disabled={!affordable || received} aria-busy={busyId === template.id} onClick={() => onReceive(template)}>{received ? '已受赐' : busyId === template.id ? '受赐中…' : '受赐'}</button>
-          </div>
-        </div>
-      </article>
-    })}</div>}
+    : <div className="vow-list">
+      {pinned.length > 0 && <TemplateReorderGroup items={pinned} renderItem={renderCard} onCommit={onReorder} />}
+      {unpinned.length > 0 && <TemplateReorderGroup items={unpinned} renderItem={renderCard} onCommit={onReorder} />}
+    </div>}
   </section>
 }
 

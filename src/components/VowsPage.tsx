@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Check, Edit3, Plus, ScrollText, Trash2, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { Check, Edit3, Pin, PinOff, Plus, ScrollText, Trash2, X } from 'lucide-react'
 import {
   calculateBalance,
   calculateTodayStats,
+  compareTemplates,
   getDayWindow,
   isWithinDay,
   ledgerRecordService,
@@ -16,6 +17,7 @@ import AnimatedNumber from './ui/AnimatedNumber'
 import Toast from './ui/Toast'
 import SegmentedTypeSwitch from './ui/SegmentedTypeSwitch'
 import { IconGlyph, VOW_ICON_OPTIONS, normalizeIconId } from './ui/iconRegistry'
+import TemplateReorderGroup from './ui/TemplateReorderGroup'
 
 type VowForm = { name: string; icon: string; points: string; type: TemplateType }
 const EMPTY_FORM: VowForm = { name: '', icon: 'focus', points: '1', type: 'repeatable' }
@@ -69,7 +71,7 @@ export default function VowsPage() {
   }, [taskRecords])
 
   const repeatable = useMemo(
-    () => templates.filter((template) => template.type === 'repeatable').sort((a, b) => a.points - b.points),
+    () => templates.filter((template) => template.type === 'repeatable').sort(compareTemplates),
     [templates],
   )
   const oneTime = useMemo(
@@ -77,7 +79,7 @@ export default function VowsPage() {
       if (template.type !== 'oneTime') return false
       const completion = recordsByTemplate.get(template.id)?.[0]
       return !completion || isWithinDay(completion.occurredAt, todayWindow)
-    }).sort((a, b) => a.points - b.points),
+    }).sort(compareTemplates),
     [recordsByTemplate, templates, todayWindow],
   )
 
@@ -119,6 +121,26 @@ export default function VowsPage() {
     }
   }
 
+  async function togglePinned(template: TaskTemplate) {
+    try {
+      await taskTemplateService.setPinned(template.id, !template.pinned)
+      await refresh()
+      setToast(template.pinned ? '誓约已取消置顶' : '誓约已置顶')
+    } catch {
+      setToast('置顶状态保存失败')
+    }
+  }
+
+  async function reorderVows(ids: string[]) {
+    try {
+      await taskTemplateService.reorder(ids)
+      await refresh()
+    } catch {
+      setToast('誓约排序保存失败')
+      await refresh()
+    }
+  }
+
   async function fulfill(template: TaskTemplate) {
     if (busyId) return
     if (template.type === 'oneTime' && (recordsByTemplate.get(template.id)?.length ?? 0) > 0) return
@@ -156,8 +178,8 @@ export default function VowsPage() {
 
       {loading ? <p className="loading-copy">正在翻阅档案……</p> : (
         <>
-          <VowSection title="永续誓约" empty="尚无永续誓约" templates={repeatable} recordsByTemplate={recordsByTemplate} todayWindow={todayWindow} busyId={busyId} onFulfill={fulfill} onEdit={openEdit} onRemove={removeVow} />
-          <VowSection title="终末誓约" empty="尚无终末誓约" templates={oneTime} recordsByTemplate={recordsByTemplate} todayWindow={todayWindow} busyId={busyId} onFulfill={fulfill} onEdit={openEdit} onRemove={removeVow} />
+          <VowSection title="永续誓约" empty="尚无永续誓约" templates={repeatable} recordsByTemplate={recordsByTemplate} todayWindow={todayWindow} busyId={busyId} onFulfill={fulfill} onEdit={openEdit} onRemove={removeVow} onPin={togglePinned} onReorder={reorderVows} />
+          <VowSection title="终末誓约" empty="尚无终末誓约" templates={oneTime} recordsByTemplate={recordsByTemplate} todayWindow={todayWindow} busyId={busyId} onFulfill={fulfill} onEdit={openEdit} onRemove={removeVow} onPin={togglePinned} onReorder={reorderVows} />
         </>
       )}
 
@@ -196,29 +218,39 @@ type VowSectionProps = {
   onFulfill: (template: TaskTemplate) => void
   onEdit: (template: TaskTemplate) => void
   onRemove: (template: TaskTemplate) => void
+  onPin: (template: TaskTemplate) => void
+  onReorder: (ids: string[]) => Promise<void>
 }
 
-function VowSection({ title, empty, templates, recordsByTemplate, todayWindow, busyId, onFulfill, onEdit, onRemove }: VowSectionProps) {
+function VowSection({ title, empty, templates, recordsByTemplate, todayWindow, busyId, onFulfill, onEdit, onRemove, onPin, onReorder }: VowSectionProps) {
+  const renderCard = (template: TaskTemplate, dragHandle: ReactNode) => {
+    const matches = recordsByTemplate.get(template.id) ?? []
+    const completed = template.type === 'oneTime' && matches.length > 0
+    const todayCount = matches.filter((record) => isWithinDay(record.occurredAt, todayWindow)).length
+    return <article className={`${completed ? 'vow-card completed' : 'vow-card'}${template.pinned ? ' pinned' : ''}`}>
+      <div className="vow-icon"><IconGlyph value={template.icon} /></div>
+      <div className="vow-main">
+        <div className="vow-title-row"><h4>{template.name}</h4><strong>+{template.points} 残响</strong></div>
+        {template.type === 'repeatable' && <p>今日履约 ×{todayCount}<span>累计履约 ×{matches.length}</span></p>}
+        {completed && <p className="fulfilled-mark"><Check size={14} /> 今日已履约</p>}
+        <div className="vow-actions">
+          {dragHandle}
+          <button className={`text-button pin-button${template.pinned ? ' active' : ''}`} type="button" aria-label={template.pinned ? '取消置顶' : '置顶'} aria-pressed={Boolean(template.pinned)} onClick={() => onPin(template)}>{template.pinned ? <PinOff size={15} /> : <Pin size={15} />}</button>
+          <button className="text-button" type="button" onClick={() => onEdit(template)}><Edit3 size={15} />修订</button>
+          <button className="text-button danger" type="button" onClick={() => onRemove(template)}><Trash2 size={15} />抹除</button>
+          <button className="fulfill-button" type="button" disabled={completed || busyId === template.id} aria-busy={busyId === template.id} onClick={() => onFulfill(template)}>{completed ? '已履约' : busyId === template.id ? '履约中…' : '履约'}</button>
+        </div>
+      </div>
+    </article>
+  }
+  const pinned = templates.filter((template) => template.pinned)
+  const unpinned = templates.filter((template) => !template.pinned)
   return <section className="vow-section"><h3>{title}</h3>{templates.length === 0
     ? <div className="section-empty"><ScrollText size={18} /><span>{empty}</span></div>
-    : <div className="vow-list">{templates.map((template) => {
-      const matches = recordsByTemplate.get(template.id) ?? []
-      const completed = template.type === 'oneTime' && matches.length > 0
-      const todayCount = matches.filter((record) => isWithinDay(record.occurredAt, todayWindow)).length
-      return <article className={completed ? 'vow-card completed' : 'vow-card'} key={template.id}>
-        <div className="vow-icon"><IconGlyph value={template.icon} /></div>
-        <div className="vow-main">
-          <div className="vow-title-row"><h4>{template.name}</h4><strong>+{template.points} 残响</strong></div>
-          {template.type === 'repeatable' && <p>今日履约 ×{todayCount}<span>累计履约 ×{matches.length}</span></p>}
-          {completed && <p className="fulfilled-mark"><Check size={14} /> 今日已履约</p>}
-          <div className="vow-actions">
-            <button className="text-button" type="button" onClick={() => onEdit(template)}><Edit3 size={15} />修订</button>
-            <button className="text-button danger" type="button" onClick={() => onRemove(template)}><Trash2 size={15} />抹除</button>
-            <button className="fulfill-button" type="button" disabled={completed || busyId === template.id} aria-busy={busyId === template.id} onClick={() => onFulfill(template)}>{completed ? '已履约' : busyId === template.id ? '履约中…' : '履约'}</button>
-          </div>
-        </div>
-      </article>
-    })}</div>}
+    : <div className="vow-list">
+      {pinned.length > 0 && <TemplateReorderGroup items={pinned} renderItem={renderCard} onCommit={onReorder} />}
+      {unpinned.length > 0 && <TemplateReorderGroup items={unpinned} renderItem={renderCard} onCommit={onReorder} />}
+    </div>}
   </section>
 }
 

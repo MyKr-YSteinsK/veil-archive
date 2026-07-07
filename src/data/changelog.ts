@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.2.0'
+export const APP_VERSION = '1.3.0'
 
 export type ChangelogEntry = {
   version: string
@@ -8,6 +8,17 @@ export type ChangelogEntry = {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '1.3.0',
+    date: '2026-07-07',
+    title: '模板排序与置顶',
+    items: [
+      '新增誓约与异赐模板手动排序。',
+      '新增模板置顶能力。',
+      '支持从拖拽手柄调整模板顺序。',
+      '优化模板列表的移动动画与排序持久化。',
+    ],
+  },
   {
     version: '1.2.0',
     date: '2026-07-07',
