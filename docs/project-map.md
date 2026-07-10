@@ -22,6 +22,9 @@ veil-archive/
 │     └─ icon-512.png
 ├─ src/
 │  ├─ components/
+│  │  ├─ templates/
+│  │  │  ├─ TemplateFormModal.tsx
+│  │  │  └─ TemplatePagePrimitives.tsx
 │  │  ├─ ui/
 │  │  │  ├─ AnimatedNumber.tsx
 │  │  │  ├─ iconRegistry.tsx
@@ -33,6 +36,9 @@ veil-archive/
 │  │  ├─ GivingsPage.tsx
 │  │  ├─ LogPage.tsx
 │  │  └─ VowsPage.tsx
+│  ├─ hooks/
+│  │  ├─ useAutoClearingToast.ts
+│  │  └─ useTemplatePageData.ts
 │  ├─ data/
 │  │  ├─ calculations.ts
 │  │  ├─ changelog.ts
@@ -103,17 +109,17 @@ This file is currently centralized. Avoid large visual rewrites unless requested
 
 ### `src/components/VowsPage.tsx`
 
-Owns 誓约 UI.
+Thin adapter for 誓约-specific UI and business rules.
 
 Responsibilities:
 
-* Load task templates, ledger records, and settings.
+* Connect shared template-page data to task templates.
 * Show current balance and today gained points.
 * Create and edit task templates.
 * Soft-delete task templates.
 * Fulfill task templates.
 * Separate repeatable and one-time vows.
-* Display today/cumulative counts.
+* Keep positive ledger deltas, completion rules, and vow copy explicit.
 
 Likely change locations:
 
@@ -125,17 +131,17 @@ Likely change locations:
 
 ### `src/components/GivingsPage.tsx`
 
-Owns 异赐 UI.
+Thin adapter for 异赐-specific UI and business rules.
 
 Responsibilities:
 
-* Load reward templates, ledger records, and settings.
+* Connect shared template-page data to reward templates.
 * Show current balance and today spent points.
 * Create and edit reward templates.
 * Soft-delete reward templates.
 * Receive reward templates.
 * Prevent receiving rewards when balance is insufficient.
-* Separate repeatable and one-time rewards.
+* Keep affordability, negative ledger deltas, receipt rules, and giving copy explicit.
 
 Likely change locations:
 
@@ -189,6 +195,40 @@ Likely change locations:
 * Settings expansion.
 * About/version changes.
 * Data deletion flow.
+
+### `src/components/templates/TemplateFormModal.tsx`
+
+Shared vow/giving template form presentation.
+
+Responsibilities:
+
+* Preserve the existing modal sheet, icon picker, inputs, and segmented type selector.
+* Expose form changes and submission to the domain page.
+* Keep data mutations and domain rules outside the component.
+
+### `src/components/templates/TemplatePagePrimitives.tsx`
+
+Shared template-page presentation primitives.
+
+Responsibilities:
+
+* Render balance/today summaries.
+* Render empty and pinned/unpinned sortable sections.
+* Render the common card icon, title, pin, edit, delete, and action layout.
+
+### `src/hooks/useAutoClearingToast.ts`
+
+Owns temporary toast state and timer cleanup for template pages.
+
+### `src/hooks/useTemplatePageData.ts`
+
+Owns the shared template-page loading lifecycle and derived view data.
+
+Responsibilities:
+
+* Load templates, ledger records, and settings in parallel.
+* Keep refresh callable after domain mutations.
+* Derive balance, today stats, day window, and records grouped by template.
 
 ### `src/components/ui/AnimatedNumber.tsx`
 
@@ -482,8 +522,7 @@ Likely files:
 * `src/data/calculations.ts`
 * `src/data/validation.ts`
 * `src/components/CodexPage.tsx`
-* `src/components/VowsPage.tsx`
-* `src/components/GivingsPage.tsx`
+* `src/hooks/useTemplatePageData.ts`
 
 ### Add import/restore backup
 
@@ -533,5 +572,20 @@ Likely files:
 * `src/components/CodexPage.tsx`
 * `src/data/services.ts`
 * `src/styles.css`
+
+### Change shared vow/giving form or card structure
+
+Likely files:
+
+* `src/components/templates/TemplateFormModal.tsx`
+* `src/components/templates/TemplatePagePrimitives.tsx`
+* `src/components/VowsPage.tsx` or `src/components/GivingsPage.tsx` for domain-specific behavior.
+
+### Change shared template-page loading or feedback
+
+Likely files:
+
+* `src/hooks/useTemplatePageData.ts`
+* `src/hooks/useAutoClearingToast.ts`
 
 ---

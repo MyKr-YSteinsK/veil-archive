@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.3.0'
+export const APP_VERSION = '1.3.1'
 
 export type ChangelogEntry = {
   version: string
@@ -8,6 +8,16 @@ export type ChangelogEntry = {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '1.3.1',
+    date: '2026-07-10',
+    title: '结构与稳定性优化',
+    items: [
+      '整理誓约与异赐页面的共享交互逻辑。',
+      '统一模板表单、列表与反馈行为。',
+      '优化代码结构并保持现有功能与界面不变。',
+    ],
+  },
   {
     version: '1.3.0',
     date: '2026-07-07',

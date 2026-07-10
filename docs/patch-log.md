@@ -175,6 +175,38 @@ Notes:
 
 * Dragging starts from the dedicated handle; pinned and unpinned groups reorder independently.
 
+## 2026-07-10 — 1.3.1 shared template page structure
+
+Type: refactor
+
+Summary:
+
+* Extracted stable shared form, list, feedback, summary, and template-card primitives used by vow and giving pages.
+* Reduced duplicated page lifecycle and presentation logic while keeping domain rules explicit.
+* Preserved existing persistence, icon, sorting, pinning, drag, ledger, and theme behavior.
+* Updated 密典版本 and the in-app changelog to 1.3.1.
+
+Files:
+
+* `src/hooks/useAutoClearingToast.ts`
+* `src/hooks/useTemplatePageData.ts`
+* `src/components/templates/TemplateFormModal.tsx`
+* `src/components/templates/TemplatePagePrimitives.tsx`
+* `src/components/VowsPage.tsx`
+* `src/components/GivingsPage.tsx`
+* `src/data/changelog.ts`
+* `docs/project-map.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* `npm run build`: pass.
+* Mobile create/edit/type/icon flows, fulfillment/receipt and one-time guards, insufficient balance, pin/unpin, vow/giving reorder persistence, ledger snapshots/balance, themes, version, changelog, and console: pass.
+
+Notes:
+
+* Destructive delete confirmation was not submitted during browser verification; the unchanged soft-delete and historical ledger service paths were inspected instead.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.
