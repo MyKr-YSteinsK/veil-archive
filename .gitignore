@@ -6,3 +6,9 @@ dist
 *.tsbuildinfo
 outputs/
 work/
+/.idea/.gitignore
+/docs/dev-plan.md
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
+/.idea/veil-archive.iml
