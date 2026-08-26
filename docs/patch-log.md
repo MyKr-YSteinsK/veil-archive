@@ -237,6 +237,38 @@ Notes:
 
 * Product source, schema, UI/business behavior, PWA runtime, and release behavior were not changed. The migration checkpoint remains pending.
 
+## 2026-08-26 — Core pure-logic regression baseline
+
+Type: test
+
+Summary:
+
+* Added Vitest 4.1.11 as a development-only test runner and a non-interactive `npm test` command.
+* Added regression coverage for ledger calculations, day windows/today statistics, validation, template ordering/pinning derivation, and CSV export escaping.
+
+Files:
+
+* `package.json`
+* `package-lock.json`
+* `vitest.config.ts`
+* `src/data/calculations.test.ts`
+* `src/data/validation.test.ts`
+* `src/data/templateOrdering.test.ts`
+* `src/data/csv.test.ts`
+* `docs/project/CURRENT_STATE.md`
+* `docs/project-map.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* `npm test`: pass — 4 files, 13 tests.
+* `npm run build`: pass — `tsc -b && vite build`.
+
+Notes:
+
+* Tests do not decide unresolved one-time, backfill, negative-balance, day-start, release identity, or release-gate policy. The deploy workflow remains unchanged.
+* npm installation reported 5 high-severity advisories; dependency remediation was not included.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.

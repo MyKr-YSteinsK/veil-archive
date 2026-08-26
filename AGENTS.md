@@ -51,7 +51,8 @@ Run these from the repository root (`D:\CS\veil-archive`):
 * `npm run dev` starts the Vite development server.
 * `npm run build` runs `tsc -b` followed by the Vite production build and generates ignored `dist/` output.
 * `npm run preview` serves the existing `dist/` production output.
+* `npm test` runs the non-interactive Vitest 4.1.11 unit suite for `src/data/**/*.test.ts`.
 
-Node.js 22 is the documented/CI runtime. There is currently no test, lint, standalone typecheck, browser automation, import/restore, or production-smoke script. For meaningful repository changes, keep [`docs/patch-log.md`](docs/patch-log.md) factually updated; its older verification entries remain historical.
+Node.js 22 is the documented/CI runtime. There is currently no lint, standalone typecheck, browser automation, import/restore, or production-smoke script. For meaningful repository changes, keep [`docs/patch-log.md`](docs/patch-log.md) factually updated; its older verification entries remain historical.
 
 Do not commit or push unless the user explicitly requests it.

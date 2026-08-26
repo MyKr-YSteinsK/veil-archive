@@ -54,13 +54,17 @@ veil-archive/
 │  │  └─ useTemplatePageData.ts
 │  ├─ data/
 │  │  ├─ calculations.ts
+│  │  ├─ calculations.test.ts
 │  │  ├─ changelog.ts
 │  │  ├─ csv.ts
+│  │  ├─ csv.test.ts
 │  │  ├─ database.ts
 │  │  ├─ index.ts
 │  │  ├─ services.ts
 │  │  ├─ templateOrdering.ts
+│  │  ├─ templateOrdering.test.ts
 │  │  ├─ types.ts
+│  │  ├─ validation.test.ts
 │  │  └─ validation.ts
 │  ├─ App.tsx
 │  ├─ main.tsx
@@ -73,6 +77,7 @@ veil-archive/
 ├─ package.json
 ├─ README.md
 ├─ tsconfig.json
+├─ vitest.config.ts
 └─ vite.config.ts
 ```
 
@@ -395,6 +400,14 @@ Current responsibilities:
 * ISO date validation.
 * Day-start time validation.
 * Theme mode validation.
+
+### `src/data/*.test.ts`
+
+Own the current pure/data-logic regression baseline. The tests exercise calculations, day-window/today statistics, field and delta validation, template ordering/pinning derivation, and export-only CSV structure/escaping without introducing service, IndexedDB, UI, PWA, or release-policy tests.
+
+### `vitest.config.ts`
+
+Configures the Node-environment Vitest run and limits discovery to the data-module test files.
 
 ### `src/data/csv.ts`
 
