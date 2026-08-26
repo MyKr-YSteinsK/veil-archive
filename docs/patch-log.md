@@ -276,7 +276,7 @@ Type: maintenance
 Summary:
 
 * Replaced the old explicit-user-request-only commit/push note in `AGENTS.md` with a formal Plan/Task default: after Acceptance, required verification, and Project State/docs updates pass, commit in-scope changes and push `main` to `origin/main`, with explicit safety stop conditions and post-push synchronization checks.
-* Audited the pre-fix lockfile's 5 high npm advisory entries. All were build/dev-toolchain findings, not application runtime dependencies: direct dev-only `vite@7.2.2`, and transitive `postcss@8.5.16`, `nanoid@3.3.15`, `fast-uri@3.1.3`, `brace-expansion@5.0.7`, and nested `filelist` `brace-expansion@2.1.1`. `npm explain` traced them through Vite or `vite-plugin-pwa` → Workbox; application source does not import them and they are absent from the final browser bundle.
+* Audited the pre-fix lockfile's 5 high npm advisory entries. All were build/dev-toolchain findings, not application runtime dependencies: direct dev-only `vite@7.2.2`, and transitive `postcss@8.5.16`, `nanoid@3.3.15`, `fast-uri@3.1.3`, `brace-expansion@5.0.7`, and nested `filelist` `brace-expansion@2.1.1`. `npm explain` traced them through Vite or `vite-plugin-pwa` → Workbox; application source does not import the vulnerable package implementations, and those implementations are not included in the final browser bundle.
 * Applied the normal non-force npm remediation as a lockfile-only change: Vite 7.2.2 → 7.3.6, PostCSS 8.5.16 → 8.5.26, nanoid 3.3.15 → 3.3.18, fast-uri 3.1.3 → 3.1.6, brace-expansion 5.0.7/2.1.1 → 5.0.9/2.1.4, and the compatible Vite/esbuild toolchain 0.25.12 → 0.28.2. Root `package.json` declarations were unchanged.
 
 Audit detail:
