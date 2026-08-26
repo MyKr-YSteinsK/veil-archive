@@ -358,6 +358,31 @@ Notes:
 
 * No Dexie schema migration, merge/partial restore, backend/cloud behavior, or browser IndexedDB/user-data operation was added. Real-device/manual UI smoke remains outstanding.
 
+## 2026-08-27 — One-time and historical correction semantics investigation
+
+Type: docs
+
+Summary:
+
+* Re-read the Vows, Givings, Log, Codex, shared template-data hook, calculation/helper, validation, service, type, and accepted backup/restore paths.
+* Confirmed current drift: page one-time guards use any same-kind/template identity history; `isOneTimeTemplateUsed()` requires a one-time snapshot and has no active caller; template type changes are allowed; backfill exposes active one-time templates without a usage guard; reward backfill checks current aggregate balance rather than historical time.
+* Confirmed historical ledger edits/deletes and backfill have only field/sign validation, so final derived balance and chronological running balance may become negative. Normal reward receipt retains its current page-level affordability check.
+* Prepared a decision-enabling recommendation: identity-based usage across normal/backfill flows, derived re-availability after the last usage is deleted, no independent consumed flag, truthful negative historical balance with optional non-blocking warning, and reward backfill as historical fact without current-balance or running-balance simulation.
+
+Files:
+
+* `docs/project/CURRENT_STATE.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* Existing `npm test`: pass — 5 files, 17 tests.
+* No source, service, schema, UI, PWA, release behavior, user data, or `docs/project/DECISIONS.md` was modified.
+
+Notes:
+
+* The proposal remains pending USER CHECK. A future Plan05 may implement service/transaction invariant hardening only after the policy is confirmed; legacy inconsistent one-time history must not be automatically rewritten in this investigation.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.
