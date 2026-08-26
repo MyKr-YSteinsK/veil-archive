@@ -1,168 +1,57 @@
 # AGENTS.md
 
-## Project identity
+## Repository identity
 
-The Veil Archive｜帷幕档案 is a mobile-first offline PWA for personal vow, reward, and ledger tracking.
+The Veil Archive｜帷幕档案 is a small, personal, mobile-first offline PWA for tracking:
 
-The product language is intentionally ritualized:
+* 誓约 — vow/task templates and completions;
+* 异赐 — reward templates and receipts;
+* 残响 — points derived from the ledger;
+* 帷录 — historical ledger records;
+* 源典 — settings, archive views, export, and destructive controls.
 
-* Task templates are 誓约.
-* Reward templates are 异赐.
-* Points are 残响.
-* Ledger entries are 帷录.
-* Settings and archive controls live in 源典.
+The product is local-first. Persistent application data belongs in browser/device IndexedDB; there is no account, backend, cloud sync, analytics, payment, social, or remote application database.
 
-This is a personal local-first application. It must remain small, self-contained, offline-capable, and easy to maintain.
+## Canonical ownership
 
-## Development rules
+* This file is the canonical repository-specific execution boundary.
+* [`docs/project/PROJECT_BRIEF.md`](docs/project/PROJECT_BRIEF.md) owns durable product identity, boundaries, and priorities.
+* [`docs/project/DECISIONS.md`](docs/project/DECISIONS.md) owns accepted durable decisions and rationale.
+* [`docs/project/CURRENT_STATE.md`](docs/project/CURRENT_STATE.md) owns mutable, evidence-dated repository state, risks, verification gaps, and pending decisions.
+* [`docs/project-map.md`](docs/project-map.md) owns the detailed repository and module map.
+* [`README.md`](README.md) owns product/developer entry and setup guidance.
+* `src/`, `package.json`, `package-lock.json`, build configuration, and workflow files are the current implementation/configuration sources of truth for their respective facts.
+* [`docs/dev-plan.md`](docs/dev-plan.md), when present locally, is historical planning material and is not current execution authority. [`docs/patch-log.md`](docs/patch-log.md) is historical developer evidence, not present-tense CI or production proof.
 
-1. Keep the project local-first.
+Current repository evidence owns current implementation facts. Do not silently reopen an accepted durable decision merely because the implementation has drifted; record implementation drift and request a product decision when policy must change.
 
-    * Do not add accounts, backend services, cloud sync, analytics, payments, social features, or remote databases unless explicitly requested.
+## Product and data invariants
 
-2. Preserve the current product identity.
+* Keep the four-surface navigation model and the terminology `誓约 / 异赐 / 残响 / 帷录 / 源典`.
+* Balance is calculated from ledger `pointsDelta`; do not introduce an independently authoritative mutable balance.
+* Task completion writes a positive ledger delta. Reward receipt writes a negative delta and preserves the current affordability behavior.
+* Ledger records retain title/icon/point history independently of later template edits. Template deletion is soft deletion; deleting a ledger record is a separate operation.
+* Manual ordering and pinning are durable template data. Keep repeatable and one-time groups distinct.
+* New activity icons use stable daily-life semantic IDs rendered as monochrome line icons; retain compatibility with legacy stored emoji values.
+* Preserve the existing restrained archive/codex visual language and mobile-first behavior, including reachable bottom navigation, safe-area spacing, touch targets, and modal-sheet behavior.
+* Keep PWA/offline behavior and the GitHub Pages `/veil-archive/` base path intact unless explicitly authorized to change them.
 
-    * Use the existing dark fantasy / archive / codex visual language.
-    * Keep terminology consistent with README and existing UI copy.
-    * Avoid generic SaaS wording, generic productivity app language, and unrelated gamification bloat.
+## Safety boundaries
 
-3. Prefer small patches.
+* Do not modify browser IndexedDB/user data, delete historical material, or remove ignored/local/generated files merely for cleanup.
+* Destructive in-app actions must remain explicitly confirmed, and full archive deletion must remain clearly irreversible.
+* Stop for direction before changing persisted schema/data semantics, backup/restore policy, version/release policy, or unresolved product-policy behavior (including one-time rules, negative-balance semantics, or day-start meaning).
+* Do not expand this personal tool into accounts, services, sync, telemetry, AI, payments, social features, or unrelated platform infrastructure.
 
-    * Make the smallest change that satisfies the request.
-    * Do not refactor unrelated files.
-    * Do not rename concepts unless the user explicitly asks.
+## Repository commands
 
-4. Keep mobile-first behavior.
+Run these from the repository root (`D:\CS\veil-archive`):
 
-    * Primary use case is phone PWA usage.
-    * Check bottom tab bar spacing, modal sheet behavior, touch targets, safe-area inset, and small-screen density after UI changes.
+* `npm ci` installs the lockfile-resolved dependencies.
+* `npm run dev` starts the Vite development server.
+* `npm run build` runs `tsc -b` followed by the Vite production build and generates ignored `dist/` output.
+* `npm run preview` serves the existing `dist/` production output.
 
-5. Preserve offline behavior.
+Node.js 22 is the documented/CI runtime. There is currently no test, lint, standalone typecheck, browser automation, import/restore, or production-smoke script. For meaningful repository changes, keep [`docs/patch-log.md`](docs/patch-log.md) factually updated; its older verification entries remain historical.
 
-    * Data must remain in browser IndexedDB.
-    * PWA shell must keep working after first successful load.
-    * Do not introduce network-only runtime dependencies.
-
-6. Preserve historical ledger integrity.
-
-    * Template edits must not rewrite old ledger snapshots unless explicitly requested.
-    * Deleted templates should be soft-deleted when historical ledger records may still reference them.
-    * Ledger balance is derived from records, not stored as independent mutable state.
-
-7. Keep data mutations explicit and reversible where possible.
-
-    * Destructive actions must remain confirmed.
-    * Full data deletion must remain clearly marked as irreversible.
-    * Backup/export should remain easy to access.
-
-## Build / test commands
-
-Use the following commands from the repository root:
-
-```bash
-npm ci
-npm run dev
-npm run build
-npm run preview
-```
-
-Current scripts:
-
-```bash
-npm run dev      # start Vite dev server
-npm run build    # TypeScript build check + Vite production build
-npm run preview  # preview production build locally
-```
-
-## Phase development rules
-
-For planned feature work:
-
-1. Read this file first.
-2. Read `docs/dev-plan.md`.
-3. Read `docs/project-map.md`.
-4. Implement only the requested phase or patch.
-5. Run `npm run build`.
-6. Update `docs/patch-log.md`.
-7. If file responsibilities changed, update `docs/project-map.md`.
-
-Do not start a later phase unless the user explicitly asks.
-
-## Patch development rules
-
-For small bugfixes or small feature additions:
-
-1. Use the smallest relevant source files.
-2. Avoid broad rewrites.
-3. Keep current UI language and styling tokens.
-4. Run `npm run build`.
-5. Add one concise entry to `docs/patch-log.md`.
-
-Patch handoff instruction:
-
-Use frugal-dev-runner. Do not expand scope. Do not auto-commit unless explicitly requested.
-
-## Asset handling rules
-
-Current required assets are PWA icons under `public/icons/`.
-
-Do not generate or invent new assets in code. If a new icon, image, sound, font, or sample file is required, document it first in the relevant plan or handoff and wait for the asset to be supplied.
-
-When adding assets, prefer:
-
-* Small file sizes.
-* Stable filenames.
-* Paths under `public/` for static PWA assets.
-* No large uncompressed media.
-
-## Verification policy
-
-Minimum verification for any code change:
-
-```bash
-npm run build
-```
-
-For PWA or deployment changes, also verify:
-
-```bash
-npm run preview
-```
-
-Manual verification should cover:
-
-* Initial app load.
-* Bottom tab navigation.
-* Create / edit / delete 誓约.
-* Create / edit / delete 异赐.
-* Fulfill 誓约.
-* Receive 异赐.
-* Backfill 帷录.
-* Edit and delete 帷录.
-* CSV export.
-* Theme switching.
-* Day-start setting.
-* PWA install behavior if manifest or service worker config changed.
-
-## Commit policy
-
-Use concise conventional commits when commits are requested:
-
-* `feat: ...`
-* `fix: ...`
-* `refactor: ...`
-* `docs: ...`
-* `style: ...`
-* `chore: ...`
-
-Do not commit automatically unless the user explicitly requests it.
-
-## Output format
-
-When reporting work back to the user, include:
-
-1. What changed.
-2. Files changed.
-3. Verification result.
-4. Any known limitation or follow-up.
-5. Suggested patch-log entry if not already written.
+Do not commit or push unless the user explicitly requests it.

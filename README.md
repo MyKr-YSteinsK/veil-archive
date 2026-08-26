@@ -31,6 +31,19 @@ npm run preview
 
 生产文件输出到 `dist/`。构建同时生成 Web App Manifest 与 Workbox service worker，并预缓存应用壳、脚本、样式和安装图标。
 
+## 项目文档
+
+仓库协作信息按职责分开维护：
+
+- [`AGENTS.md`](./AGENTS.md)：仓库专属边界与命令约束
+- [`docs/project/PROJECT_BRIEF.md`](./docs/project/PROJECT_BRIEF.md)：稳定产品定义与长期边界
+- [`docs/project/DECISIONS.md`](./docs/project/DECISIONS.md)：已接受的长期决策与理由
+- [`docs/project/CURRENT_STATE.md`](./docs/project/CURRENT_STATE.md)：当前仓库事实、风险与验证缺口
+- [`docs/project-map.md`](./docs/project-map.md)：详细目录与模块职责
+- [`docs/patch-log.md`](./docs/patch-log.md)：历史开发记录；其中旧验证条目不是当前 CI 或生产证明
+
+本地若存在 `docs/dev-plan.md`，它仅作为历史计划参考，不是当前执行权威。
+
 ## GitHub Pages 部署
 
 仓库包含 `.github/workflows/deploy.yml`。推送到 `main` 后，GitHub Actions 会执行 `npm ci`、生产构建并部署 `dist/`。

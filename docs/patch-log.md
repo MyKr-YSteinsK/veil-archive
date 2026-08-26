@@ -6,6 +6,8 @@ This file records meaningful changes after the initial baseline.
 
 Use concise entries. Do not include abandoned ideas, speculative plans, or discussion history.
 
+This is a historical developer record. Current repository state and verification gaps live in [`docs/project/CURRENT_STATE.md`](project/CURRENT_STATE.md); older build or manual-check entries are not present-tense CI or production proof.
+
 ## Format
 
 ```md
@@ -206,6 +208,34 @@ Verification:
 Notes:
 
 * Destructive delete confirmation was not submitted during browser verification; the unchanged soft-delete and historical ledger service paths were inspected instead.
+
+## 2026-08-26 — Canonical development framework adoption
+
+Type: docs
+
+Summary:
+
+* Replaced the mixed repository instructions with a concise repo-specific `AGENTS.md`.
+* Added canonical durable product, decision, and current-state documents under `docs/project/`.
+* Clarified supporting-document ownership and current one-time/CSV implementation boundaries.
+
+Files:
+
+* `AGENTS.md`
+* `README.md`
+* `docs/project/PROJECT_BRIEF.md`
+* `docs/project/DECISIONS.md`
+* `docs/project/CURRENT_STATE.md`
+* `docs/project-map.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* `npm run build`: pass (`tsc -b && vite build`).
+
+Notes:
+
+* Product source, schema, UI/business behavior, PWA runtime, and release behavior were not changed. The migration checkpoint remains pending.
 
 ## Unreleased
 

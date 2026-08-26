@@ -2,9 +2,18 @@
 
 # The Veil Archive｜帷幕档案 Project Map
 
-## 1. Planned directory structure
+## Documentation ownership
 
-Current expected structure:
+* [`AGENTS.md`](../AGENTS.md) is the canonical repository-specific execution boundary.
+* [`project/PROJECT_BRIEF.md`](project/PROJECT_BRIEF.md) and [`project/DECISIONS.md`](project/DECISIONS.md) own durable product identity and accepted decisions.
+* [`project/CURRENT_STATE.md`](project/CURRENT_STATE.md) owns mutable, evidence-dated repository facts, risks, and verification gaps.
+* This file owns the detailed repository/module map and change-location guidance.
+* [`../README.md`](../README.md) owns product/developer entry and setup guidance.
+* [`dev-plan.md`](dev-plan.md), when present locally, is historical planning material; [`patch-log.md`](patch-log.md) is historical developer evidence. Neither is current execution or production authority.
+
+## 1. Current repository structure
+
+Current source tree:
 
 ```text
 veil-archive/
@@ -12,7 +21,11 @@ veil-archive/
 │  └─ workflows/
 │     └─ deploy.yml
 ├─ docs/
-│  ├─ dev-plan.md
+│  ├─ project/
+│  │  ├─ CURRENT_STATE.md
+│  │  ├─ DECISIONS.md
+│  │  └─ PROJECT_BRIEF.md
+│  ├─ dev-plan.md (local historical, ignored)
 │  ├─ project-map.md
 │  └─ patch-log.md
 ├─ public/
@@ -120,6 +133,7 @@ Responsibilities:
 * Fulfill task templates.
 * Separate repeatable and one-time vows.
 * Keep positive ledger deltas, completion rules, and vow copy explicit.
+* Keep the current one-time completion/display checks in this page adapter; they are not a centralized data-service invariant.
 
 Likely change locations:
 
@@ -142,6 +156,7 @@ Responsibilities:
 * Receive reward templates.
 * Prevent receiving rewards when balance is insufficient.
 * Keep affordability, negative ledger deltas, receipt rules, and giving copy explicit.
+* Keep the current one-time receipt and affordability checks in this page adapter; the data service does not atomically enforce them.
 
 Likely change locations:
 
@@ -165,6 +180,7 @@ Responsibilities:
 * Edit ledger records.
 * Delete ledger records.
 * Show record details and balance flow.
+* Backfill from active templates without a centralized one-time-use guard.
 
 Likely change locations:
 
@@ -183,7 +199,7 @@ Responsibilities:
 * Load settings, templates, and records.
 * Update day-start setting.
 * Update theme mode.
-* Export CSV backup.
+* Export the current CSV copy (export-only; no import/restore).
 * Show archived one-time records.
 * Clear all local data.
 * Show app version and repository link.
@@ -339,6 +355,8 @@ Services:
 
 Change this file when adding persistence behavior, validation calls, or transaction boundaries.
 
+Current boundary: field validation, snapshot writes, soft deletion, ordering, and settings persistence live here; cross-entity template-reference, one-time-use, and affordability enforcement is not centralized here.
+
 ### `src/data/calculations.ts`
 
 Owns pure derived logic.
@@ -349,7 +367,7 @@ Current responsibilities:
 * Day-window calculation.
 * Today stats.
 * Record filtering.
-* One-time template usage check.
+* Expose a one-time template usage helper; current page/service enforcement is not centralized here.
 
 This is the best place for unit tests.
 
@@ -380,7 +398,7 @@ Current responsibilities:
 
 ### `src/data/csv.ts`
 
-Owns backup CSV generation.
+Owns CSV export generation; it is not an import/restore implementation.
 
 Current responsibilities:
 
