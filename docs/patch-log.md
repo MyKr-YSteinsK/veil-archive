@@ -324,6 +324,40 @@ Notes:
 
 * No JSON backup, import/restore code, schema/version change, UI flow, PWA change, or user IndexedDB read/write was performed. `docs/project/DECISIONS.md` was intentionally not changed; the contract remains pending USER CHECK.
 
+## 2026-08-27 — Implement versioned JSON backup and atomic restore
+
+Type: feature
+
+Summary:
+
+* Implemented independent v1 JSON backup serialization covering all four user-data tables, including soft-deleted templates, ordering/pinning, settings, ledger snapshots, optional references, and raw icon values. CSV remains export-only.
+* Implemented pre-write structural, semantic, duplicate-ID, template-reference, and supported-version validation. Future format/schema versions are rejected; the persisted runtime `appVersion` remains code-owned.
+* Implemented replace-all restore with a single Dexie read/write transaction over all four tables and added a two-step 源典 confirmation flow with file summary and failure messaging.
+* Added fake IndexedDB coverage for full-fidelity round trips, validation rejection, replacement, and mid-transaction rollback.
+
+Files:
+
+* `src/data/backup.ts`
+* `src/data/backup.test.ts`
+* `src/data/index.ts`
+* `src/components/CodexPage.tsx`
+* `src/styles.css`
+* `package.json`
+* `package-lock.json`
+* `docs/project/DECISIONS.md`
+* `docs/project/CURRENT_STATE.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* `npm test`: pass, 5 files and 17 tests.
+* `npm run build`: pass, TypeScript project build and Vite production bundle.
+* `npm audit --omit=optional`: pass, 0 vulnerabilities.
+
+Notes:
+
+* No Dexie schema migration, merge/partial restore, backend/cloud behavior, or browser IndexedDB/user-data operation was added. Real-device/manual UI smoke remains outstanding.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.

@@ -1,18 +1,25 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowLeft, BookMarked, ChevronRight, Clock3, Download, ExternalLink, Flame,
-  History, Info, MoonStar, Palette, ScrollText, Sun, X,
+  History, Info, MoonStar, Palette, ScrollText, Sun, Upload, X,
 } from 'lucide-react'
 import {
   APP_VERSION,
+  createArchiveBackup,
   CHANGELOG,
   clearAllData,
   createArchiveCsv,
   ledgerRecordService,
+  parseArchiveBackup,
   rewardTemplateService,
+  restoreArchiveBackup,
   settingsService,
   taskTemplateService,
+  serializeArchiveBackup,
+  summarizeArchiveBackup,
   type LedgerRecord,
+  type ArchiveBackup,
+  type BackupSummary,
   type RewardTemplate,
   type Settings,
   type TaskTemplate,
@@ -22,6 +29,8 @@ import Toast from './ui/Toast'
 import { IconGlyph } from './ui/iconRegistry'
 
 type View = 'main' | 'tasks' | 'rewards'
+type RestoreStep = 0 | 1 | 2
+type PendingRestore = { backup: ArchiveBackup; summary: BackupSummary; fileName: string }
 const REPOSITORY_URL = 'https://github.com/MyKr-YSteinsK/veil-archive'
 
 export default function CodexPage() {
@@ -31,8 +40,13 @@ export default function CodexPage() {
   const [records, setRecords] = useState<LedgerRecord[]>([])
   const [view, setView] = useState<View>('main')
   const [clearStep, setClearStep] = useState<0 | 1 | 2>(0)
+  const [restoreStep, setRestoreStep] = useState<RestoreStep>(0)
+  const [pendingRestore, setPendingRestore] = useState<PendingRestore | null>(null)
+  const [restoreBusy, setRestoreBusy] = useState(false)
+  const [restoreError, setRestoreError] = useState('')
   const [showChangelog, setShowChangelog] = useState(false)
   const [toast, setToast] = useState('')
+  const restoreFileInput = useRef<HTMLInputElement>(null)
 
   const refresh = useCallback(async () => {
     const [nextSettings, nextTasks, nextRewards, nextRecords] = await Promise.all([
@@ -71,18 +85,87 @@ export default function CodexPage() {
     } catch { setToast('色相保存失败') }
   }
 
-  function exportCsv() {
-    const csv = createArchiveCsv(tasks, rewards, records)
-    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' })
+  function downloadText(content: string, fileName: string, type: string) {
+    const blob = new Blob([content], { type })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `veil-archive-backup-${localDateKey(new Date())}.csv`
+    anchor.download = fileName
     document.body.appendChild(anchor)
     anchor.click()
     anchor.remove()
     window.setTimeout(() => URL.revokeObjectURL(url), 1_000)
-    setToast('帷录抄本已生成')
+  }
+
+  function exportJson() {
+    try {
+      const backup = createArchiveBackup(tasks, rewards, records, settings)
+      downloadText(serializeArchiveBackup(backup), `veil-archive-backup-${localDateKey(new Date())}.json`, 'application/json;charset=utf-8')
+      setToast('完整档案抄本已生成')
+    } catch (error) {
+      setToast(`完整档案生成失败：${getErrorMessage(error)}`)
+    }
+  }
+
+  function exportCsv() {
+    const csv = createArchiveCsv(tasks, rewards, records)
+    downloadText(`\uFEFF${csv}`, `veil-archive-export-${localDateKey(new Date())}.csv`, 'text/csv;charset=utf-8')
+    setToast('帷录导出已生成')
+  }
+
+  function selectRestoreFile() {
+    if (restoreBusy) return
+    setRestoreError('')
+    restoreFileInput.current?.click()
+  }
+
+  async function handleRestoreFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || restoreBusy) return
+    setRestoreBusy(true)
+    setRestoreError('')
+    try {
+      const backup = parseArchiveBackup(await file.text())
+      setPendingRestore({ backup, summary: summarizeArchiveBackup(backup), fileName: file.name })
+      setRestoreStep(1)
+    } catch (error) {
+      setToast(`备份校验失败：${getErrorMessage(error)}`)
+    } finally {
+      setRestoreBusy(false)
+    }
+  }
+
+  function closeRestore() {
+    if (restoreBusy) return
+    setRestoreStep(0)
+    setPendingRestore(null)
+    setRestoreError('')
+  }
+
+  async function restoreCodex() {
+    if (!pendingRestore || restoreBusy) return
+    setRestoreBusy(true)
+    setRestoreError('')
+    try {
+      try {
+        await restoreArchiveBackup(pendingRestore.backup)
+      } catch (error) {
+        setRestoreError(`恢复失败，现有档案未改变：${getErrorMessage(error)}`)
+        return
+      }
+
+      const restoredTheme = pendingRestore.backup.data.settings.themeMode
+      setRestoreStep(0)
+      setPendingRestore(null)
+      await refresh()
+      applyTheme(restoredTheme)
+      setToast('完整档案已恢复')
+    } catch {
+      setToast('档案已替换，但界面刷新失败，请重新加载页面')
+    } finally {
+      setRestoreBusy(false)
+    }
   }
 
   async function burnCodex() {
@@ -129,8 +212,13 @@ export default function CodexPage() {
       <CodexButton icon={<BookMarked size={18} />} title="已受领的独一异赐" meta={`${archivedRewards.length} 条`} onClick={() => setView('rewards')} />
     </div></section>
 
-    <section className="codex-section"><h3>抄本与焚毁</h3><div className="codex-card">
-      <CodexButton icon={<Download size={18} />} title="抄录帷录" meta="CSV" onClick={exportCsv} />
+    <section className="codex-section"><h3>抄本与恢复</h3><div className="codex-card">
+      <CodexButton icon={<Download size={18} />} title="封存完整档案" meta="JSON" onClick={exportJson} />
+      <CodexButton icon={<Upload size={18} />} title="恢复完整档案" meta="JSON" onClick={selectRestoreFile} />
+      <CodexButton icon={<ScrollText size={18} />} title="导出帷录" meta="CSV" onClick={exportCsv} />
+    </div></section>
+
+    <section className="codex-section"><h3>焚毁</h3><div className="codex-card">
       <CodexButton icon={<Flame size={18} />} title="焚毁源典" danger onClick={() => setClearStep(1)} />
     </div></section>
 
@@ -149,6 +237,31 @@ export default function CodexPage() {
         {clearStep === 1 ? <button className="danger-button" type="button" onClick={() => setClearStep(2)}>我已知晓，继续</button>
           : <><p className="final-warning">这是最后一道门。确认后无法找回任何数据。</p><button className="danger-button solid" type="button" onClick={burnCodex}>确认焚毁</button></>}
         <button className="secondary-button" type="button" onClick={() => setClearStep(0)}>保留档案</button>
+      </section>
+    </div>}
+    <input ref={restoreFileInput} className="sr-only" type="file" accept="application/json,.json" aria-label="选择 JSON 备份文件" onChange={handleRestoreFile} />
+    {restoreStep > 0 && pendingRestore && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && closeRestore()}>
+      <section className="vow-modal restore-modal" role={restoreStep === 2 ? 'alertdialog' : 'dialog'} aria-modal="true" aria-labelledby="restore-title">
+        <div className="modal-heading"><div><p className={`section-mark${restoreStep === 2 ? ' danger-mark' : ''}`}>{restoreStep === 1 ? 'RESTORE REVIEW' : 'REPLACE ALL'}</p><h3 id="restore-title">{restoreStep === 1 ? '检视封存抄本' : '最后确认恢复'}</h3></div><button className="icon-button" type="button" onClick={closeRestore} aria-label="关闭" disabled={restoreBusy}><X size={20} /></button></div>
+        {restoreStep === 1 ? <>
+          <div className="backup-summary">
+            <div><span>抄本文件</span><strong>{pendingRestore.fileName}</strong></div>
+            <div><span>来源版本</span><strong>v{pendingRestore.summary.appVersion}</strong></div>
+            <div><span>导出时间</span><strong>{formatDateTime(pendingRestore.summary.exportedAt)}</strong></div>
+            <div><span>誓约模板</span><strong>{formatTemplateSummary(pendingRestore.summary.taskTemplates)}</strong></div>
+            <div><span>异赐模板</span><strong>{formatTemplateSummary(pendingRestore.summary.rewardTemplates)}</strong></div>
+            <div><span>帷录条目</span><strong>{pendingRestore.summary.ledgerRecords} 条</strong></div>
+          </div>
+          <div className="restore-warning"><Upload size={22} /><p>恢复会替换本设备上的全部誓约、异赐、帷录和设置，包括软删除条目、排序与置顶状态。不会合并当前档案。</p></div>
+          <button className="primary-button" type="button" onClick={() => setRestoreStep(2)}>核对无误，继续</button>
+          <button className="secondary-button" type="button" onClick={closeRestore}>取消</button>
+        </> : <>
+          <div className="burn-warning"><Flame size={27} /><p>这是不可逆的全量替换。确认后，当前本地档案将由该 JSON 抄本取代。</p></div>
+          {restoreError && <p className="form-error" role="alert">{restoreError}</p>}
+          <p className="final-warning">请确认你已保留当前档案的必要副本。</p>
+          <button className="danger-button solid" type="button" onClick={restoreCodex} disabled={restoreBusy}>{restoreBusy ? '正在恢复…' : '确认替换全部档案'}</button>
+          <button className="secondary-button" type="button" onClick={closeRestore} disabled={restoreBusy}>保留当前档案</button>
+        </>}
       </section>
     </div>}
     {showChangelog && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setShowChangelog(false)}>
@@ -172,3 +285,5 @@ function CodexButton({ icon, title, meta, danger, onClick }: { icon: React.React
 export function applyTheme(mode: ThemeMode) { document.documentElement.dataset.theme = mode }
 function localDateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
 function formatDateTime(value: string) { return new Date(value).toLocaleString('zh-CN', { dateStyle: 'medium', timeStyle: 'short', hour12: false }) }
+function formatTemplateSummary(summary: BackupSummary['taskTemplates']) { return `${summary.total} 条（${summary.active} 活跃，${summary.deleted} 已删除）` }
+function getErrorMessage(error: unknown) { return error instanceof Error ? error.message : '未知错误' }

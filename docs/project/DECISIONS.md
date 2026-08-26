@@ -99,3 +99,13 @@ This file records accepted durable product and architecture decisions. It is not
 **Rationale:** Missing enterprise or social systems are intentional product boundaries, not automatically unfinished work.
 
 **Consequence:** New scope must be justified against data safety, ledger correctness, mobile quality, and maintenance cost before feature breadth.
+
+## D-011 — Versioned local archive backup and atomic replace-all restore
+
+**Decision:** Use an independent, versioned JSON contract for full-fidelity local archive backup. CSV remains an inspection/export format. v1 restore is replace-all only: validate the complete payload, then replace task templates, reward templates, ledger records, and settings in one Dexie read/write transaction. Unsupported future format or database schema versions are rejected before writing. A backup's `appVersion` is provenance only; the running code remains authoritative.
+
+**Rationale:** The complete user archive spans four IndexedDB tables, and CSV omits settings, ordering, pinning, and backup metadata. Pre-validation plus one transaction prevents malformed, incompatible, or partially written restores from silently changing the local archive.
+
+**Consequence:** Restore is explicitly destructive and requires a two-step confirmation. Soft-deleted templates, ordering/pinning, settings, raw icon values, ledger snapshots, and valid template references are preserved; missing referenced templates are rejected. Merge, partial restore, and schema migration remain deferred.
+
+**Current owner:** `src/data/backup.ts`, `src/components/CodexPage.tsx`, and `src/data/backup.test.ts`.
