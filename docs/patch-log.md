@@ -300,6 +300,30 @@ Notes:
 
 * The audit findings were confined to local build/dev tooling under the inspected dependency graph; vulnerable behavior would require the relevant hostile build input or an exposed Vite dev server. GitHub Pages serves the generated static PWA and does not expose that server. No npm audit advisories remain in this lockfile, subject to future dependency/audit review.
 
+## 2026-08-27 — Backup/restore contract investigation
+
+Type: docs
+
+Summary:
+
+* Re-read the current Dexie schema, persisted types, services, validation, CSV generator, ordering/icon compatibility, settings/version behavior, and source export/clear flows.
+* Confirmed the complete user archive is distributed across task templates, reward templates, ledger records, and singleton settings. The current CSV represents soft deletion, timestamps, ledger snapshots, optional references, and stored icon strings, but omits ordering/pinning, settings, and backup format metadata.
+* Confirmed `clearAllData()` supplies evidence for a four-table read/write transaction scope, but no restore implementation or rollback experiment was performed.
+* Prepared a decision-enabling recommendation in the final `TASK_RESULT`: independent versioned JSON for full-fidelity backup, replace-all v1, full validation before a single transaction, strict rejection of unsupported future versions, and CSV remaining export-only. This is a proposal, not an accepted durable decision.
+
+Files:
+
+* `docs/project/CURRENT_STATE.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* `git diff --check`: pass.
+
+Notes:
+
+* No JSON backup, import/restore code, schema/version change, UI flow, PWA change, or user IndexedDB read/write was performed. `docs/project/DECISIONS.md` was intentionally not changed; the contract remains pending USER CHECK.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.
