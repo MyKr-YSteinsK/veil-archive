@@ -269,6 +269,37 @@ Notes:
 * Tests do not decide unresolved one-time, backfill, negative-balance, day-start, release identity, or release-gate policy. The deploy workflow remains unchanged.
 * npm installation reported 5 high-severity advisories; dependency remediation was not included.
 
+## 2026-08-27 — Dependency security audit and formal Plan delivery rule
+
+Type: maintenance
+
+Summary:
+
+* Replaced the old explicit-user-request-only commit/push note in `AGENTS.md` with a formal Plan/Task default: after Acceptance, required verification, and Project State/docs updates pass, commit in-scope changes and push `main` to `origin/main`, with explicit safety stop conditions and post-push synchronization checks.
+* Audited the pre-fix lockfile's 5 high npm advisory entries. All were build/dev-toolchain findings, not application runtime dependencies: direct dev-only `vite@7.2.2`, and transitive `postcss@8.5.16`, `nanoid@3.3.15`, `fast-uri@3.1.3`, `brace-expansion@5.0.7`, and nested `filelist` `brace-expansion@2.1.1`. `npm explain` traced them through Vite or `vite-plugin-pwa` → Workbox; application source does not import them and they are absent from the final browser bundle.
+* Applied the normal non-force npm remediation as a lockfile-only change: Vite 7.2.2 → 7.3.6, PostCSS 8.5.16 → 8.5.26, nanoid 3.3.15 → 3.3.18, fast-uri 3.1.3 → 3.1.6, brace-expansion 5.0.7/2.1.1 → 5.0.9/2.1.4, and the compatible Vite/esbuild toolchain 0.25.12 → 0.28.2. Root `package.json` declarations were unchanged.
+
+Audit detail:
+
+* `brace-expansion` — high; transitive nodes `5.0.7` through `vite-plugin-pwa@1.3.0` → `workbox-build@7.4.1` → `glob@11.1.0` → `minimatch@10.2.5`, and nested `2.1.1` through Workbox's off-main-thread/ejs/jake/filelist/minimatch chain. Affected aggregate ranges were `2.0.0–2.1.3` and `4.0.0–5.0.8`; fixed to `2.1.4` and `5.0.9`. Build-time glob expansion/DoS conditions require hostile tool input; no app runtime path was found.
+* `fast-uri` — high; transitive `3.1.3` through `vite-plugin-pwa@1.3.0` → `workbox-build@7.4.1` → `ajv@8.20.0`. Affected range was `3.0.0–3.1.4`; fixed to `3.1.6`. The host-confusion condition is in Workbox build-time URI parsing, not the browser app.
+* `nanoid` — high; transitive `3.3.15` through `vite@7.2.2` → `postcss@8.5.16`. Affected range was `<=3.3.17`; fixed to `3.3.18`. The loop condition requires an invalid size passed by build tooling; no application call site was found.
+* `postcss` — high aggregate (including the reported moderate and high source-map advisories); transitive `8.5.16` through `vite@7.2.2`, affected `<=8.5.22`, fixed to `8.5.26`. The path/source-map disclosure condition is build-input/dev-tooling scoped and is not exposed by the static Pages runtime.
+* `vite` — high aggregate (including reported moderate and high dev-server advisories); direct devDependency `7.2.2` from the root's `^7.2.2` range, affected `7.0.0–7.3.3`, fixed to `7.3.6`. The path traversal/arbitrary-read issues require a Vite dev server or build-time context; GitHub Pages serves generated static files and does not expose that server.
+
+Verification:
+
+* Pre-fix `npm audit` / `npm audit --json`: 5 high, 0 critical.
+* Post-fix `npm audit` / `npm audit --json`: 0 vulnerabilities.
+* `npm ci`: pass after the updated lockfile.
+* `npm test`: pass — 4 files, 13 tests.
+* `npm run build`: pass — `tsc -b && vite build` with Vite 7.3.6.
+* No `npm audit fix --force` was used; product source, schema, PWA configuration, runtime app version, and deploy workflow were unchanged.
+
+Notes:
+
+* The audit findings were confined to local build/dev tooling under the inspected dependency graph; vulnerable behavior would require the relevant hostile build input or an exposed Vite dev server. GitHub Pages serves the generated static PWA and does not expose that server. No npm audit advisories remain in this lockfile, subject to future dependency/audit review.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.

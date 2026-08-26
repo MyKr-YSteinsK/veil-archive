@@ -1,14 +1,16 @@
 # CURRENT_STATE — The Veil Archive｜帷幕档案
 
-Mutable repository snapshot, reconciled from the real repository on 2026-08-26 (Asia/Shanghai). Current repository evidence owns the facts in this file; durable intent is in [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) and [`DECISIONS.md`](DECISIONS.md).
+Mutable repository snapshot, reconciled from the real repository on 2026-08-27 (Asia/Shanghai). Current repository evidence owns the facts in this file; durable intent is in [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) and [`DECISIONS.md`](DECISIONS.md).
 
 ## Repository identity
 
 * Repository: `D:\CS\veil-archive`, npm package `veil-archive`.
 * Branch: `main`; upstream: `origin/main`.
 * Migration snapshot baseline: `7dd4dae93ed97c665e37398aac68f775cc7d8cc2` — `refactor: share vow and giving page logic`.
-* Migration adoption is committed as `d48be70` — `docs: adopt development framework`; the active plan adds only the documented test baseline and its package/docs records.
-* During the active plan, the worktree contains only test infrastructure, pure-logic tests, and their package/documentation records; no product source/config/schema/PWA changes are present.
+* Migration adoption is committed as `d48be70` — `docs: adopt development framework`.
+* `Veill-Plan01` is complete and pushed in `7c00cb9` — `test: establish core regression baseline`; its 4-file/13-test pure-logic baseline is now a stable repository capability.
+* Plan02 reconciliation started from clean HEAD `7c00cb95a15a1b476c4c0a3433822278cd1f1db4`, synchronized with `origin/main`; its final delivery commit is reported in the corresponding `TASK_RESULT`.
+* Plan02 is limited to dependency audit/remediation, repository delivery-rule documentation, and current-state/patch-log updates. No product source/config/schema/PWA changes are present.
 * Ignored local/generated material observed: `node_modules/`, `dist/`, `.idea/`, TypeScript build-info files, and `docs/dev-plan.md`. These are not source authority. `docs/dev-plan.md` exists locally but is not tracked by Git; it is deliberately preserved and must not be treated as an active plan.
 
 ## Implemented capabilities evidenced in the repository
@@ -41,7 +43,9 @@ The current `package.json` scripts are:
 
 The regression baseline currently has 4 test files and 13 passing tests covering calculations, validation, template ordering, and CSV export. There is no lint script, standalone typecheck script, browser automation, import/migration command, or production-smoke command. Existing pre-baseline `docs/patch-log.md` entries are historical evidence only; they are not a current CI run. Real device, installed-PWA, deployed-site, and offline lifecycle checks are not evidenced in this repository snapshot.
 
-Migration verification on 2026-08-26: `npm run build` passed, running the repository's `tsc -b && vite build` command and refreshing ignored `dist/` output. This proves the TypeScript project build check and Vite production bundling for the current source; it does not prove unit behavior, browser UX, offline lifecycle, installed-PWA behavior, production identity, or historical-data compatibility.
+Migration verification on 2026-08-26: `npm run build` passed, running the repository's `tsc -b && vite build` command and refreshing ignored `dist/` output. Plan01 verification on 2026-08-26 also passed `npm test` with 4 files and 13 tests. These checks prove the TypeScript project build, Vite production bundling, and current pure-logic baseline only; they do not prove browser UX, offline lifecycle, installed-PWA behavior, production identity, or historical-data compatibility.
+
+Plan02 dependency verification on 2026-08-27: the pre-fix lockfile produced 5 high npm audit vulnerability entries. A normal, non-force `npm audit fix` updated only the lockfile's compatible dependency resolutions; the root `package.json` declarations remained unchanged. The post-fix lockfile passed `npm ci`, `npm audit` and machine-readable audit with 0 vulnerabilities, `npm test` with 4 files and 13 tests, and `npm run build` with Vite 7.3.6.
 
 ## Delivery and PWA facts
 
@@ -57,11 +61,11 @@ Migration verification on 2026-08-26: `npm run build` passed, running the reposi
 * `dayStartTime` drives today statistics, while log month/day grouping uses local calendar dates. The current 源典 copy says it affects one-time archive behavior, but archive lists are filtered by `templateType === 'oneTime'` and do not read `dayStartTime`.
 * The current tests do not cover service transactions, cross-entity ledger rules, one-time/backfill policy, icon compatibility, or UI behavior. Modal focus behavior, deletion confirmation submission, real touch/safe-area behavior, and the full service-worker update lifecycle lack current automated or device evidence.
 * `src/data/services.ts` imports icon normalization from the UI icon registry, creating a data-to-UI coupling hotspot.
-* Dependency installation reported 5 high-severity npm audit advisories; no audit fix was applied because dependency remediation is outside this baseline task.
+* The pre-fix 2026-08-27 audit findings were all build/dev-toolchain findings: direct dev-only `vite@7.2.2` and transitive `postcss@8.5.16`, `nanoid@3.3.15`, `fast-uri@3.1.3`, plus `brace-expansion@5.0.7` and `filelist`'s nested `brace-expansion@2.1.1`. The chains run through Vite or `vite-plugin-pwa`/Workbox during local build/dev work; none are imported by application source or present in the final browser bundle. The fixed lockfile resolves Vite 7.3.6, PostCSS 8.5.26, nanoid 3.3.18, fast-uri 3.1.6, brace-expansion 5.0.9/2.1.4, and the compatible esbuild 0.28.2 toolchain. The after-state audit has no residual advisories; this does not replace future audit review or real-device/production verification.
 
 ## Pending USER CHECK / unresolved policy
 
-No decision is required to start or complete this documentation adoption while product behavior remains unchanged. The following remain later decision or verification items and are not silently accepted scope:
+No user decision was required for Plan02: the remediation stayed lockfile-only, within existing dependency compatibility ranges, and did not alter product behavior. The following remain later decision or verification items and are not silently accepted scope:
 
 * the single package/runtime/tag/build version owner and release identity;
 * whether CSV remains inspection/export-only or becomes a versioned, recoverable backup/import contract, including settings/order/pin data and transactional replacement;
@@ -74,6 +78,6 @@ No decision is required to start or complete this documentation adoption while p
 
 ## Adoption status and active boundary
 
-Migration adoption is committed as `d48be70` (`docs: adopt development framework`). `Veill-Plan01` is the active test-baseline boundary; no backup/restore, domain-invariant hardening, feature, UI, PWA, or release-gate work is included. After the final `TASK_RESULT`, the next step is the appropriate development checkpoint, not a second normal feature task.
+Migration adoption is committed as `d48be70` (`docs: adopt development framework`). `Veill-Plan01` is complete and its regression baseline is stable. Plan02 completes the dependency audit/remediation and establishes the active formal-Plan default commit/push rule in `AGENTS.md`; backup/restore, domain-invariant hardening, feature, UI, PWA, and release-gate work remain out of scope. After the final `TASK_RESULT`, the next step is the appropriate development checkpoint, not a second normal feature task.
 
 The supplied migration package included the plan, audit, asset manifest, and old context exports. The separately named `00-START_HERE` through `10-MIGRATION_ADOPTION_BRIEF` files were not present in the supplied directory; the available materials were preserved outside the repository and no uncertain historical file was deleted or moved.

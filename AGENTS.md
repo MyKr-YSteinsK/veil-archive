@@ -43,6 +43,23 @@ Current repository evidence owns current implementation facts. Do not silently r
 * Stop for direction before changing persisted schema/data semantics, backup/restore policy, version/release policy, or unresolved product-policy behavior (including one-time rules, negative-balance semantics, or day-start meaning).
 * Do not expand this personal tool into accounts, services, sync, telemetry, AI, payments, social features, or unrelated platform infrastructure.
 
+## Formal Plan delivery
+
+For a formal Plan/Task, once all in-scope Acceptance items, required verification, and Project State/docs updates are complete, Codex defaults to committing all in-scope completed changes and pushing them to the current canonical upstream. The normal tracking path is `main` → `origin/main`. After push, verify that the remote contains the final commit and report final HEAD, worktree status, and ahead/behind in `TASK_RESULT`.
+
+Automatic commit/push must stop when:
+
+* the Plan explicitly prohibits commit or push;
+* Acceptance is incomplete;
+* required verification fails;
+* a scope or safety conflict exists;
+* the worktree contains user modifications whose ownership cannot be identified;
+* the remote has unknown new commits and a normal fast-forward/normal push is not possible;
+* push would require force, force-with-lease, or history rewriting;
+* the current upstream cannot be reliably confirmed;
+* the commit would include destructive or unauthorized changes; or
+* the user explicitly revokes automatic push authorization.
+
 ## Repository commands
 
 Run these from the repository root (`D:\CS\veil-archive`):
@@ -54,5 +71,3 @@ Run these from the repository root (`D:\CS\veil-archive`):
 * `npm test` runs the non-interactive Vitest 4.1.11 unit suite for `src/data/**/*.test.ts`.
 
 Node.js 22 is the documented/CI runtime. There is currently no lint, standalone typecheck, browser automation, import/restore, or production-smoke script. For meaningful repository changes, keep [`docs/patch-log.md`](docs/patch-log.md) factually updated; its older verification entries remain historical.
-
-Do not commit or push unless the user explicitly requests it.
