@@ -84,7 +84,7 @@ Plan06 implementation verification on 2026-08-27: `npm ci` passed with 0 audit v
 | `APP_VERSION` | `1.3.1` | `src/data/changelog.ts`; code-owned displayed version |
 | `CHANGELOG[0].version` | `1.3.1` | `src/data/changelog.ts`; user-facing changelog top entry |
 | Git tag | None locally or on `origin` | No current release-tag identity |
-| Source commit SHA | `32bf6fd11464d3288e96fa326d9115c774fdebc6` | Git source identity; not ordinary user-facing version |
+| Source commit SHA | Plan07 baseline `32bf6fd11464d3288e96fa326d9115c774fdebc6`; current docs delivery tip `0c07ddf88075f7c899c93bae96d0ec7589fbbc85` | Git source identity; not ordinary user-facing version |
 | Pages deployment | `main` push or `workflow_dispatch` | `.github/workflows/deploy.yml`; source deployment mechanism, not a version authority |
 
 * Historical changelog evidence maps `1.1.0` to the changelog-introduction commit `4d0cc191c6d8b02578948028d0db31cfd26159e5`, `1.2.0` to `a04a8f1f97f38f96215a4906f8d567749a7aae6`, `1.3.0` to `c02dc8f8a2f42960684393f4224b8a3d50d21651`, and `1.3.1` to `7dd4dae93ed97c665e37398aac68f775cc7d8cc2`. The `1.0.0` entry was recorded when the changelog was introduced, while the initial product work begins at `7fc14e3805cddc7476b75f210d35a07c90d93734`; no dedicated 1.0.0 release marker exists.
