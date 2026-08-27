@@ -15,6 +15,7 @@ Mutable repository snapshot, reconciled from the real repository on 2026-08-27 (
 * Plan04 starts from clean HEAD `3882f47d394a3c8555c281eebecd01611a4c8fd2`, synchronized with `origin/main`, and is limited to one-time/history semantics investigation. No product source, service, schema, data, UI, PWA, or release behavior is changed by this investigation.
 * Plan05 implements the accepted D-012 one-time identity and historical-correction rules from clean Plan04 tip; its delivery commit and verification are reported in the corresponding `TASK_RESULT`.
 * Plan06 implements accepted D-013 narrow `dayStartTime` semantics: it remains the daily-statistics window owner; Log natural-calendar grouping and one-time archive behavior remain independent.
+* Plan07 completed the version/release identity investigation from clean Plan06 tip `32bf6fd11464d3288e96fa326d9115c774fdebc6`; no runtime/package/workflow/tag/release change was made, and the contract remains pending USER DECISION.
 * Ignored local/generated material observed: `node_modules/`, `dist/`, `.idea/`, TypeScript build-info files, and `docs/dev-plan.md`. These are not source authority. `docs/dev-plan.md` exists locally but is not tracked by Git; it is deliberately preserved and must not be treated as an active plan.
 
 ## Implemented capabilities evidenced in the repository
@@ -51,7 +52,7 @@ The current `package.json` scripts are:
 * `npm run preview`: serve existing `dist/` output.
 * `npm test`: run `vitest run` through Vitest 4.1.11 in Node environment against `src/data/**/*.test.ts`.
 
-The Plan01 regression baseline has 4 test files and 13 passing tests covering calculations, validation, template ordering, and CSV export; the current suite has 6 test files and 30 passing tests after backup/restore and service-invariant coverage. There is no lint script, standalone typecheck script, browser automation, import/migration command, or production-smoke command. Existing pre-baseline `docs/patch-log.md` entries are historical evidence only; they are not a current CI run. Real device, installed-PWA, deployed-site, and offline lifecycle checks are not evidenced in this repository snapshot.
+The Plan01 regression baseline has 4 test files and 13 passing tests covering calculations, validation, template ordering, and CSV export; the current suite has 6 test files and 31 passing tests after backup/restore, service-invariant, and day-window coverage. There is no lint script, standalone typecheck script, browser automation, import/migration command, or production-smoke command. Existing pre-baseline `docs/patch-log.md` entries are historical evidence only; they are not a current CI run. Real device, installed-PWA, deployed-site, and offline lifecycle checks are not evidenced in this repository snapshot.
 
 Migration verification on 2026-08-26: `npm run build` passed, running the repository's `tsc -b && vite build` command and refreshing ignored `dist/` output. Plan01 verification on 2026-08-26 also passed `npm test` with 4 files and 13 tests. These checks prove the TypeScript project build, Vite production bundling, and current pure-logic baseline only; they do not prove browser UX, offline lifecycle, installed-PWA behavior, production identity, or historical-data compatibility.
 
@@ -70,7 +71,24 @@ Plan06 implementation verification on 2026-08-27: `npm ci` passed with 0 audit v
 * `vite.config.ts` uses base, manifest `start_url`, and scope `/veil-archive/`; Workbox precaches the application shell/assets and uses `navigateFallback: 'index.html'`.
 * PWA registration uses `registerType: 'prompt'`; the current Workbox configuration also has `skipWaiting: true` and `clientsClaim: true`. `src/pwaUpdate.ts` exposes an update-ready prompt and a user-triggered reload action.
 * `.github/workflows/deploy.yml` runs on `main` push or manual dispatch. It uses Ubuntu, Node 22, `npm ci`, `npm run build`, Pages artifact upload, and `actions/deploy-pages@v4`. There is no PR gate, test/lint gate, preview check, deployed URL smoke, or offline check.
-* Package/lock version is `1.0.0`; code-owned runtime `APP_VERSION` is `1.3.1`; Git has no tags. The canonical package/runtime/tag/build identity is unresolved. Production URL availability, recent CI state, Pages configuration, deployed SHA, and installed-PWA behavior are unavailable from the repository.
+* Current identity evidence is split: `package.json` and the root `package-lock.json` both declare `1.0.0`; `src/data/changelog.ts` owns `APP_VERSION = '1.3.1'` and `CHANGELOG[0].version = '1.3.1'`; `git tag --list` and `git ls-remote --tags origin` are empty. The workflow does not inject a commit SHA or product version into the app artifact; GitHub Actions run/deployment metadata is the available external source-identity evidence, but no run history, deployed SHA, production endpoint, or Pages configuration state is available from this repository snapshot. Plan07 investigated the canonical package/runtime/tag/deployment relationship; it remains pending USER DECISION.
+
+## Version and release identity investigation
+
+* Plan07 baseline: branch `main`, upstream `origin/main`, clean source tip `32bf6fd11464d3288e96fa326d9115c774fdebc6`, and local/remote tag listings empty.
+
+| Identity | Current evidence | Current owner / role |
+| --- | --- | --- |
+| `package.json.version` | `1.0.0` | Private package metadata; not runtime authority |
+| Root `package-lock.json` version | `1.0.0` | Lockfile mirror of package metadata |
+| `APP_VERSION` | `1.3.1` | `src/data/changelog.ts`; code-owned displayed version |
+| `CHANGELOG[0].version` | `1.3.1` | `src/data/changelog.ts`; user-facing changelog top entry |
+| Git tag | None locally or on `origin` | No current release-tag identity |
+| Source commit SHA | `32bf6fd11464d3288e96fa326d9115c774fdebc6` | Git source identity; not ordinary user-facing version |
+| Pages deployment | `main` push or `workflow_dispatch` | `.github/workflows/deploy.yml`; source deployment mechanism, not a version authority |
+
+* Historical changelog evidence maps `1.1.0` to the changelog-introduction commit `4d0cc191c6d8b02578948028d0db31cfd26159e5`, `1.2.0` to `a04a8f1f97f38f96215a4906f8d567749a7aae6`, `1.3.0` to `c02dc8f8a2f42960684393f4224b8a3d50d21651`, and `1.3.1` to `7dd4dae93ed97c665e37398aac68f775cc7d8cc2`. The `1.0.0` entry was recorded when the changelog was introduced, while the initial product work begins at `7fc14e3805cddc7476b75f210d35a07c90d93734`; no dedicated 1.0.0 release marker exists.
+* The post-`1.3.1` history includes full JSON backup/replace-all restore, one-time and historical-correction hardening, narrow day-start semantics, and related governance/security/test work. The repository has no reliable tag or Pages deployment mapping for those changes, so no retroactive release identity was created.
 
 ## Known risks and verification gaps
 
@@ -81,14 +99,20 @@ Plan06 implementation verification on 2026-08-27: `npm ci` passed with 0 audit v
 * Plan05 implements D-012 without a schema migration or legacy-data rewrite. Its six specified domain/UI smoke checks were confirmed by the user; broad UI, modal focus, accessibility, real touch/safe-area, and full service-worker lifecycle evidence remain unavailable.
 * `dayStartTime` drives only today statistics. Log month/day grouping uses local calendar dates, and one-time archive filters do not read `dayStartTime`; the 源典 setting copy now states this narrow scope.
 * The current tests cover fake-IndexedDB service transactions, cross-entity ledger rules, one-time live/backfill policy, live reward affordability, concurrent spend serialization, negative historical balance, legacy duplicate readability, and restore regression. Icon compatibility and UI behavior remain outside the current automated suite; modal focus behavior, deletion confirmation submission, real touch/safe-area behavior, and the full service-worker update lifecycle lack current automated or device evidence.
+* Plan07 confirms that package/runtime/tag/deployment identity is split and that the current Pages workflow does not make a product release. A proposed canonical owner, release checkpoint, immutable tag policy, and next-version recommendation remain pending USER DECISION; no retroactive tags are justified by the available history.
 * `src/data/services.ts` imports icon normalization from the UI icon registry, creating a data-to-UI coupling hotspot.
 * The pre-fix 2026-08-27 audit findings were all build/dev-toolchain findings: direct dev-only `vite@7.2.2` and transitive `postcss@8.5.16`, `nanoid@3.3.15`, `fast-uri@3.1.3`, plus `brace-expansion@5.0.7` and `filelist`'s nested `brace-expansion@2.1.1`. The chains run through Vite or `vite-plugin-pwa`/Workbox during local build/dev work; application source does not import the vulnerable package implementations, and those implementations are not included in the final browser bundle. The fixed lockfile resolves Vite 7.3.6, PostCSS 8.5.26, nanoid 3.3.18, fast-uri 3.1.6, brace-expansion 5.0.9/2.1.4, and the compatible esbuild 0.28.2 toolchain. The after-state audit has no residual advisories; this does not replace future audit review or real-device/production verification.
 
 ## Pending USER CHECK / unresolved policy
 
-Plan03's six backup/restore decisions, Plan05's D-012 one-time/historical-correction decision, and Plan06's D-013 narrow day-start decision are accepted and recorded in `DECISIONS.md`. The following remain later decision or verification items and are not silently accepted scope:
+Plan03's six backup/restore decisions, Plan05's D-012 one-time/historical-correction decision, and Plan06's D-013 narrow day-start decision are accepted and recorded in `DECISIONS.md`. Plan07's release-identity investigation is complete, but its proposed durable contract is not accepted and was intentionally not added to `DECISIONS.md`. The following remain later decision or verification items and are not silently accepted scope:
 
-* the single package/runtime/tag/build version owner and release identity;
+* whether `APP_VERSION` plus the top in-app changelog entry is the canonical product release version, with package/lock versions as release-time mirrors;
+* whether each intentional product release creates an immutable annotated `vX.Y.Z` tag and never moves or rewrites it;
+* whether ordinary Pages deployments remain separate from intentional product releases, with the triggering commit SHA as source identity;
+* whether GitHub Release remains optional for this Pages-first personal PWA;
+* whether the proposed SemVer-inspired PATCH/MINOR/MAJOR classification is accepted;
+* whether the next intentional release should be `1.4.0` with the proposed user-facing changelog scope;
 * real-device/manual smoke verification of JSON export, file selection, the two-step replacement dialog, safe-area spacing, and touch behavior;
 * whether the dedicated drag-handle interaction is a permanent product policy;
 * future PR/tag/production/release gates;

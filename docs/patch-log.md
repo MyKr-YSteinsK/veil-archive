@@ -454,6 +454,35 @@ Notes:
 
 * Log continues to group records by local natural calendar date, and one-time archive filtering remains independent of `dayStartTime`. No schema, backup/restore, timezone, PWA, release, or user-data behavior was changed. No new Plan06 real-device USER CHECK is required for this copy/docs/test-only scope; broad device/PWA evidence remains a separate repository gap.
 
+## 2026-08-27 — Investigate version and release identity contract
+
+Type: docs
+
+Summary:
+
+* Audited the current package/lockfile version (`1.0.0`), code-owned runtime and top changelog version (`1.3.1`), local/remote tag state, current source SHA, and Pages workflow triggers.
+* Confirmed that `main` push and manual Pages deployment are source-deployment mechanisms without a version/tag/release gate or app-embedded commit SHA.
+* Mapped the historical `1.1.0`–`1.3.1` changelog entries to candidate commits and recorded why the available evidence does not justify retroactive tag creation, especially for the original `1.0.0` boundary.
+* Classified post-`1.3.1` backup/restore and domain-rule work as the strongest evidence for a proposed next MINOR release, while governance, dependency, testing, and internal history remain patch-log material.
+* Prepared the separate `RELEASE_IDENTITY_CONTRACT_PROPOSAL` in the final TASK_RESULT. No proposal was written as an accepted durable decision in `docs/project/DECISIONS.md`.
+
+Files:
+
+* `docs/project/CURRENT_STATE.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* Repository baseline: clean `main` at `32bf6fd11464d3288e96fa326d9115c774fdebc6`, synchronized with `origin/main` before the investigation edits.
+* `git tag --list`: pass — no local tags.
+* `git ls-remote --tags origin`: pass — no remote tags.
+* Version/history/workflow evidence was read directly from `package.json`, `package-lock.json`, `src/data/changelog.ts`, Git history, and `.github/workflows/deploy.yml`.
+* Existing Plan06 source verification was reused because this investigation does not change source/runtime/package/workflow behavior: 6 test files / 31 tests and the TypeScript/Vite build had already passed.
+
+Notes:
+
+* This investigation stops at USER CHECK. It does not bump a version, alter changelog content, create tags or releases, change Pages workflow, add a release gate, publish npm, or perform deployed-site/installed-PWA verification.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.
