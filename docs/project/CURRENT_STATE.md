@@ -15,7 +15,8 @@ Mutable repository snapshot, reconciled from the real repository on 2026-08-27 (
 * Plan04 starts from clean HEAD `3882f47d394a3c8555c281eebecd01611a4c8fd2`, synchronized with `origin/main`, and is limited to one-time/history semantics investigation. No product source, service, schema, data, UI, PWA, or release behavior is changed by this investigation.
 * Plan05 implements the accepted D-012 one-time identity and historical-correction rules from clean Plan04 tip; its delivery commit and verification are reported in the corresponding `TASK_RESULT`.
 * Plan06 implements accepted D-013 narrow `dayStartTime` semantics: it remains the daily-statistics window owner; Log natural-calendar grouping and one-time archive behavior remain independent.
-* Plan07 completed the version/release identity investigation from clean Plan06 tip `32bf6fd11464d3288e96fa326d9115c774fdebc6`; no runtime/package/workflow/tag/release change was made, and the contract remains pending USER DECISION.
+* Plan07 completed the version/release identity investigation from clean Plan06 tip `32bf6fd11464d3288e96fa326d9115c774fdebc6`; Plan08 subsequently accepted and implemented its contract as D-014 without a product release side effect.
+* Plan08 accepted and implemented D-014: product/package/tag/deployment identities now have separate durable roles, and a report/strict release coherence checker is available; the current `1.3.1` product / `1.0.0` package split remains intentional until the future `1.4.0` release.
 * Ignored local/generated material observed: `node_modules/`, `dist/`, `.idea/`, TypeScript build-info files, and `docs/dev-plan.md`. These are not source authority. `docs/dev-plan.md` exists locally but is not tracked by Git; it is deliberately preserved and must not be treated as an active plan.
 
 ## Implemented capabilities evidenced in the repository
@@ -50,9 +51,10 @@ The current `package.json` scripts are:
 * `npm run dev`: start Vite development server.
 * `npm run build`: `tsc -b && vite build`; this is the available combined TypeScript project build check and production bundling command.
 * `npm run preview`: serve existing `dist/` output.
-* `npm test`: run `vitest run` through Vitest 4.1.11 in Node environment against `src/data/**/*.test.ts`.
+* `npm test`: run `vitest run` through Vitest 4.1.11 in Node environment against the data-module TypeScript tests and `scripts/**/*.test.mjs` release-checker fixtures.
+* `npm run release:check`: report current product/package release identity; add `-- --strict --expected X.Y.Z` for the pre-tag strict coherence check.
 
-The Plan01 regression baseline has 4 test files and 13 passing tests covering calculations, validation, template ordering, and CSV export; the current suite has 6 test files and 31 passing tests after backup/restore, service-invariant, and day-window coverage. There is no lint script, standalone typecheck script, browser automation, import/migration command, or production-smoke command. Existing pre-baseline `docs/patch-log.md` entries are historical evidence only; they are not a current CI run. Real device, installed-PWA, deployed-site, and offline lifecycle checks are not evidenced in this repository snapshot.
+The Plan01 regression baseline has 4 test files and 13 passing tests covering calculations, validation, template ordering, and CSV export; the current suite has 7 test files and 38 passing tests after backup/restore, service-invariant, day-window, and release-checker coverage. There is no lint script, standalone typecheck script, browser automation, import/migration command, or production-smoke command. Existing pre-baseline `docs/patch-log.md` entries are historical evidence only; they are not a current CI run. Real device, installed-PWA, deployed-site, and offline lifecycle checks are not evidenced in this repository snapshot.
 
 Migration verification on 2026-08-26: `npm run build` passed, running the repository's `tsc -b && vite build` command and refreshing ignored `dist/` output. Plan01 verification on 2026-08-26 also passed `npm test` with 4 files and 13 tests. These checks prove the TypeScript project build, Vite production bundling, and current pure-logic baseline only; they do not prove browser UX, offline lifecycle, installed-PWA behavior, production identity, or historical-data compatibility.
 
@@ -66,12 +68,14 @@ Plan05 implementation verification on 2026-08-27: `npm ci` passed with 0 audit v
 
 Plan06 implementation verification on 2026-08-27: `npm ci` passed with 0 audit vulnerabilities; `npm test` passed with 6 files and 31 tests, including before/at-boundary and exact-24-hour custom day-window coverage; `npm run build` passed with the TypeScript project build and Vite production bundle; `npm audit --omit=optional` reported 0 vulnerabilities. `git diff --check` passed. The implementation is intentionally limited to D-013 documentation/copy plus a day-window regression test; no schema, backup/restore, timezone, Log grouping, one-time archive, PWA, or release behavior is changed, and no browser IndexedDB/user data was read or modified.
 
+Plan08 implementation verification on 2026-08-27: `npm ci` passed with 0 audit vulnerabilities; `npm test` passed with 7 files and 38 tests, including report/strict release-checker fixtures; `npm run build` passed with the TypeScript project build and Vite production bundle; `npm audit --omit=optional` passed with 0 vulnerabilities; report mode returned 0 and reported product `1.3.1`, package mirror `1.0.0`, and `strict release coherent: false`; strict `--expected 1.4.0` returned the expected non-zero result with field diagnostics; `git diff --check` passed. The implementation is limited to D-014 governance, the non-interactive checker and fixtures, command/documentation updates; no product version, tag, release, Pages workflow, schema, backup, service, or PWA lifecycle behavior is changed, and no browser IndexedDB/user data was read or modified.
+
 ## Delivery and PWA facts
 
 * `vite.config.ts` uses base, manifest `start_url`, and scope `/veil-archive/`; Workbox precaches the application shell/assets and uses `navigateFallback: 'index.html'`.
 * PWA registration uses `registerType: 'prompt'`; the current Workbox configuration also has `skipWaiting: true` and `clientsClaim: true`. `src/pwaUpdate.ts` exposes an update-ready prompt and a user-triggered reload action.
 * `.github/workflows/deploy.yml` runs on `main` push or manual dispatch. It uses Ubuntu, Node 22, `npm ci`, `npm run build`, Pages artifact upload, and `actions/deploy-pages@v4`. There is no PR gate, test/lint gate, preview check, deployed URL smoke, or offline check.
-* Current identity evidence is split: `package.json` and the root `package-lock.json` both declare `1.0.0`; `src/data/changelog.ts` owns `APP_VERSION = '1.3.1'` and `CHANGELOG[0].version = '1.3.1'`; `git tag --list` and `git ls-remote --tags origin` are empty. The workflow does not inject a commit SHA or product version into the app artifact; GitHub Actions run/deployment metadata is the available external source-identity evidence, but no run history, deployed SHA, production endpoint, or Pages configuration state is available from this repository snapshot. Plan07 investigated the canonical package/runtime/tag/deployment relationship; it remains pending USER DECISION.
+* Current identity evidence is intentionally split: `package.json` and the root `package-lock.json` both declare `1.0.0`; `src/data/changelog.ts` owns `APP_VERSION = '1.3.1'` and `CHANGELOG[0].version = '1.3.1'`; `git tag --list` and `git ls-remote --tags origin` are empty. The workflow does not inject a commit SHA or product version into the app artifact; GitHub Actions run/deployment metadata is the available external source-identity evidence, but no run history, deployed SHA, production endpoint, or Pages configuration state is available from this repository snapshot. Plan07 investigated and Plan08 formalized the canonical package/runtime/tag/deployment relationship in D-014.
 
 ## Version and release identity investigation
 
@@ -84,7 +88,7 @@ Plan06 implementation verification on 2026-08-27: `npm ci` passed with 0 audit v
 | `APP_VERSION` | `1.3.1` | `src/data/changelog.ts`; code-owned displayed version |
 | `CHANGELOG[0].version` | `1.3.1` | `src/data/changelog.ts`; user-facing changelog top entry |
 | Git tag | None locally or on `origin` | No current release-tag identity |
-| Source commit SHA | Plan07 baseline `32bf6fd11464d3288e96fa326d9115c774fdebc6`; current docs delivery tip `0c07ddf88075f7c899c93bae96d0ec7589fbbc85` | Git source identity; not ordinary user-facing version |
+| Source commit SHA | Plan08 baseline `7ffe281495f53bc75cbe3db087d4be05b5444975`; current source identity is the Git `HEAD` recorded at delivery | Git source identity; not ordinary user-facing version |
 | Pages deployment | `main` push or `workflow_dispatch` | `.github/workflows/deploy.yml`; source deployment mechanism, not a version authority |
 
 * Historical changelog evidence maps `1.1.0` to the changelog-introduction commit `4d0cc191c6d8b02578948028d0db31cfd26159e5`, `1.2.0` to `a04a8f1f97f38f96215a4906f8d567749a7aae6`, `1.3.0` to `c02dc8f8a2f42960684393f4224b8a3d50d21651`, and `1.3.1` to `7dd4dae93ed97c665e37398aac68f775cc7d8cc2`. The `1.0.0` entry was recorded when the changelog was introduced, while the initial product work begins at `7fc14e3805cddc7476b75f210d35a07c90d93734`; no dedicated 1.0.0 release marker exists.
@@ -99,27 +103,21 @@ Plan06 implementation verification on 2026-08-27: `npm ci` passed with 0 audit v
 * Plan05 implements D-012 without a schema migration or legacy-data rewrite. Its six specified domain/UI smoke checks were confirmed by the user; broad UI, modal focus, accessibility, real touch/safe-area, and full service-worker lifecycle evidence remain unavailable.
 * `dayStartTime` drives only today statistics. Log month/day grouping uses local calendar dates, and one-time archive filters do not read `dayStartTime`; the 源典 setting copy now states this narrow scope.
 * The current tests cover fake-IndexedDB service transactions, cross-entity ledger rules, one-time live/backfill policy, live reward affordability, concurrent spend serialization, negative historical balance, legacy duplicate readability, and restore regression. Icon compatibility and UI behavior remain outside the current automated suite; modal focus behavior, deletion confirmation submission, real touch/safe-area behavior, and the full service-worker update lifecycle lack current automated or device evidence.
-* Plan07 confirms that package/runtime/tag/deployment identity is split and that the current Pages workflow does not make a product release. A proposed canonical owner, release checkpoint, immutable tag policy, and next-version recommendation remain pending USER DECISION; no retroactive tags are justified by the available history.
+* Plan07 confirmed that package/runtime/tag/deployment identity is split; Plan08 formalized D-014 and added a report/strict checker without turning the current Pages workflow into a release gate. The current development state is intentionally not strict-release-coherent, and no retroactive tags are justified by the available history.
 * `src/data/services.ts` imports icon normalization from the UI icon registry, creating a data-to-UI coupling hotspot.
 * The pre-fix 2026-08-27 audit findings were all build/dev-toolchain findings: direct dev-only `vite@7.2.2` and transitive `postcss@8.5.16`, `nanoid@3.3.15`, `fast-uri@3.1.3`, plus `brace-expansion@5.0.7` and `filelist`'s nested `brace-expansion@2.1.1`. The chains run through Vite or `vite-plugin-pwa`/Workbox during local build/dev work; application source does not import the vulnerable package implementations, and those implementations are not included in the final browser bundle. The fixed lockfile resolves Vite 7.3.6, PostCSS 8.5.26, nanoid 3.3.18, fast-uri 3.1.6, brace-expansion 5.0.9/2.1.4, and the compatible esbuild 0.28.2 toolchain. The after-state audit has no residual advisories; this does not replace future audit review or real-device/production verification.
 
 ## Pending USER CHECK / unresolved policy
 
-Plan03's six backup/restore decisions, Plan05's D-012 one-time/historical-correction decision, and Plan06's D-013 narrow day-start decision are accepted and recorded in `DECISIONS.md`. Plan07's release-identity investigation is complete, but its proposed durable contract is not accepted and was intentionally not added to `DECISIONS.md`. The following remain later decision or verification items and are not silently accepted scope:
+Plan03's six backup/restore decisions, Plan05's D-012 one-time/historical-correction decision, Plan06's D-013 narrow day-start decision, and Plan08's D-014 release-identity decision are accepted and recorded in `DECISIONS.md`. The following remain later decision or verification items and are not silently accepted scope:
 
-* whether `APP_VERSION` plus the top in-app changelog entry is the canonical product release version, with package/lock versions as release-time mirrors;
-* whether each intentional product release creates an immutable annotated `vX.Y.Z` tag and never moves or rewrites it;
-* whether ordinary Pages deployments remain separate from intentional product releases, with the triggering commit SHA as source identity;
-* whether GitHub Release remains optional for this Pages-first personal PWA;
-* whether the proposed SemVer-inspired PATCH/MINOR/MAJOR classification is accepted;
-* whether the next intentional release should be `1.4.0` with the proposed user-facing changelog scope;
 * real-device/manual smoke verification of JSON export, file selection, the two-step replacement dialog, safe-area spacing, and touch behavior;
 * whether the dedicated drag-handle interaction is a permanent product policy;
-* future PR/tag/production/release gates;
+* future PR/production/release gates beyond the release-only coherence check;
 * deployed and installed-PWA/real-device verification.
 
 ## Adoption status and active boundary
 
-Migration adoption is committed as `d48be70` (`docs: adopt development framework`). `Veill-Plan01` is complete and its regression baseline is stable. Plan02 completed the dependency audit/remediation and established the active formal-Plan delivery rule in `AGENTS.md`. Plan03's contract is accepted and implemented as a docs-plus-runtime delivery with no Dexie schema change or data migration. Plan04 completed its investigation; Plan05 accepted and implemented D-012 as the identity-based one-time and truthful historical-correction boundary; and Plan06 accepted and implemented D-013 as the narrow day-start statistics boundary, all without schema migration or legacy rewrite.
+Migration adoption is committed as `d48be70` (`docs: adopt development framework`). `Veill-Plan01` is complete and its regression baseline is stable. Plan02 completed the dependency audit/remediation and established the active formal-Plan delivery rule in `AGENTS.md`. Plan03's contract is accepted and implemented as a docs-plus-runtime delivery with no Dexie schema change or data migration. Plan04 completed its investigation; Plan05 accepted and implemented D-012 as the identity-based one-time and truthful historical-correction boundary; Plan06 accepted and implemented D-013 as the narrow day-start statistics boundary; Plan07 completed the release identity investigation; and Plan08 accepted and implemented D-014, all without schema migration or legacy rewrite. The next active boundary is the independent formal `1.4.0` release Plan.
 
 The supplied migration package included the plan, audit, asset manifest, and old context exports. The separately named `00-START_HERE` through `10-MIGRATION_ADOPTION_BRIEF` files were not present in the supplied directory; the available materials were preserved outside the repository and no uncertain historical file was deleted or moved.

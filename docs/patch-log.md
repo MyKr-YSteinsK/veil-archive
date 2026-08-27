@@ -483,6 +483,44 @@ Notes:
 
 * This investigation stops at USER CHECK. It does not bump a version, alter changelog content, create tags or releases, change Pages workflow, add a release gate, publish npm, or perform deployed-site/installed-PWA verification.
 
+## 2026-08-27 — Solidify release contract and coherence check
+
+Type: maintenance
+
+Summary:
+
+* Recorded the six confirmed release policies as durable decision D-014: code-owned product version, formal-release package mirrors, immutable annotated tags, separate deployment/source identity, optional GitHub Release, and SemVer-inspired classification with no retroactive tags.
+* Added `scripts/release-check.mjs` and `npm run release:check`. Report mode validates the two internal version pairs, exposes product/package drift, and returns success for the known development state; strict mode compares all four fields to `--expected X.Y.Z` and returns non-zero with field-level diagnostics when not ready.
+* Added temporary-directory CLI regression fixtures for runtime/changelog mismatch, package/lock mismatch, development drift, strict mismatch, coherent `1.4.0`, and expected-version mismatch.
+* Added the release-only execution boundary to `AGENTS.md` and recorded the checker ownership in `docs/project-map.md` without changing the Pages workflow.
+* Reconciled `CURRENT_STATE` with D-014, the intentional `1.3.1`/`1.0.0` split, the strict-not-coherent development state, and the next independent `1.4.0` release boundary.
+
+Files:
+
+* `AGENTS.md`
+* `docs/project-map.md`
+* `docs/project/DECISIONS.md`
+* `docs/project/CURRENT_STATE.md`
+* `docs/patch-log.md`
+* `package.json`
+* `scripts/release-check.mjs`
+* `scripts/release-check.test.mjs`
+* `vitest.config.ts`
+
+Verification:
+
+* `npm ci`: pass, 0 audit vulnerabilities.
+* `npm test`: pass — 7 files, 38 tests.
+* `npm run build`: pass — TypeScript project build and Vite production bundle.
+* `npm audit --omit=optional`: pass, 0 vulnerabilities.
+* `npm run release:check`: pass in report mode; product `1.3.1`, package mirror `1.0.0`, strict release coherent `false`.
+* `npm run release:check -- --strict --expected 1.4.0`: expected non-zero strict mismatch with field-level diagnostics.
+* `git diff --check`: pass.
+
+Notes:
+
+* Current `APP_VERSION`/top changelog remains `1.3.1`; package and lock root remain `1.0.0`; local/remote tags remain empty. No `1.4.0` bump, changelog entry, tag, GitHub Release, Pages workflow/gate, schema, product feature, or PWA lifecycle change was made. The next boundary is `Veill-Plan09` for the actual release and deployed identity verification.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.

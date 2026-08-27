@@ -70,6 +70,9 @@ veil-archive/
 │  ├─ main.tsx
 │  ├─ pwaUpdate.ts
 │  └─ styles.css
+├─ scripts/
+│  ├─ release-check.mjs
+│  └─ release-check.test.mjs
 ├─ .gitignore
 ├─ AGENTS.md
 ├─ index.html
@@ -407,7 +410,7 @@ Own the current pure/data-logic and fake-IndexedDB service regression baseline. 
 
 ### `vitest.config.ts`
 
-Configures the Node-environment Vitest run and limits discovery to the data-module test files.
+Configures the Node-environment Vitest run and discovers the data-module TypeScript tests plus the dependency-free release-checker fixture tests.
 
 ### `src/data/csv.ts`
 
@@ -435,6 +438,19 @@ Responsibilities:
 
 * Export the current `APP_VERSION`.
 * Store the static in-app version history.
+
+### `scripts/release-check.mjs`
+
+Owns the non-interactive file-level release coherence check.
+
+Responsibilities:
+
+* Read `APP_VERSION`, the top changelog version, package metadata, and the root lockfile version.
+* Report the intentional development-state product/package mirror drift without failing the report command.
+* Validate all four file versions against an expected release version in strict pre-tag mode.
+* Keep tag existence and Pages deployment verification outside the pre-tag file check.
+
+The companion `release-check.test.mjs` covers report-mode drift, internal pair mismatches, strict mismatch diagnostics, and coherent release fixtures.
 
 ### `src/pwaUpdate.ts`
 

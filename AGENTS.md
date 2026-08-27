@@ -60,6 +60,13 @@ Automatic commit/push must stop when:
 * the commit would include destructive or unauthorized changes; or
 * the user explicitly revokes automatic push authorization.
 
+## Release-specific execution boundary
+
+* The normal formal-Plan default to commit and push does not authorize a product version bump, package/lock mirror synchronization, Git tag, GitHub Release, or other release-side effect.
+* Only a formal Plan explicitly scoped as a product release may bump `APP_VERSION`, update the top in-app changelog entry, synchronize package mirrors, or create/push an annotated release tag.
+* Before creating a release tag, run `npm run release:check -- --strict --expected X.Y.Z` and require the strict coherence result. Tags must never be moved, rewritten, or force-updated; after pushing a tag, verify its remote target points to the release commit.
+* `npm run release:check` is a report/strict pre-tag check and is not a gate on the existing every-`main`-push Pages workflow.
+
 ## Repository commands
 
 Run these from the repository root (`D:\CS\veil-archive`):
@@ -68,6 +75,7 @@ Run these from the repository root (`D:\CS\veil-archive`):
 * `npm run dev` starts the Vite development server.
 * `npm run build` runs `tsc -b` followed by the Vite production build and generates ignored `dist/` output.
 * `npm run preview` serves the existing `dist/` production output.
-* `npm test` runs the non-interactive Vitest 4.1.11 unit suite for `src/data/**/*.test.ts`.
+* `npm test` runs the non-interactive Vitest 4.1.11 unit suite for the data-module tests and `scripts/**/*.test.mjs` release-checker fixtures.
+* `npm run release:check` reports product/package release identity; `npm run release:check -- --strict --expected X.Y.Z` performs the pre-tag strict coherence check.
 
 Node.js 22 is the documented/CI runtime. There is currently no lint, standalone typecheck, browser automation, import/restore, or production-smoke script. For meaningful repository changes, keep [`docs/patch-log.md`](docs/patch-log.md) factually updated; its older verification entries remain historical.
