@@ -423,6 +423,37 @@ Notes:
 
 * No schema migration, restore-contract change, legacy rewrite, compensation balance, PWA/release change, or browser IndexedDB/user-data operation was added. Real-device/manual UI smoke remains a USER CHECK.
 
+## 2026-08-27 — Narrow day-start semantics to daily statistics
+
+Type: docs + test
+
+Summary:
+
+* Recorded D-013 as the durable boundary that `dayStartTime` defines only the 24-hour window for daily statistics; it is not a global business-day rule.
+* Corrected the 源典 setting copy to state that the setting only controls the start time for today's statistics.
+* Added regression coverage for a pre-boundary reference, exact boundary inclusion/exclusion, and a continuous 24-hour custom statistics window.
+* Reconciled `CURRENT_STATE` with the accepted Plan05 smoke checks and current service/integration test coverage.
+
+Files:
+
+* `docs/project/DECISIONS.md`
+* `docs/project/CURRENT_STATE.md`
+* `src/components/CodexPage.tsx`
+* `src/data/calculations.test.ts`
+* `docs/patch-log.md`
+
+Verification:
+
+* `npm ci`: pass, 0 audit vulnerabilities.
+* `npm test`: pass — 6 files, 31 tests.
+* `npm run build`: pass — TypeScript project build and Vite production bundle.
+* `npm audit --omit=optional`: pass, 0 vulnerabilities.
+* `git diff --check`: pass.
+
+Notes:
+
+* Log continues to group records by local natural calendar date, and one-time archive filtering remains independent of `dayStartTime`. No schema, backup/restore, timezone, PWA, release, or user-data behavior was changed. No new Plan06 real-device USER CHECK is required for this copy/docs/test-only scope; broad device/PWA evidence remains a separate repository gap.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.

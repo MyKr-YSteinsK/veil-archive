@@ -119,3 +119,13 @@ This file records accepted durable product and architecture decisions. It is not
 **Consequence:** New live and backfill writes enforce identity-based one-time duplicate prevention in the data/service layer. Legacy duplicate or mixed-snapshot one-time history remains readable and is not rewritten; its identity remains used until all associated records are explicitly deleted. Restore continues to use the independent D-011 raw replace-all path and does not apply live affordability checks or one-time write guards while importing valid legacy history.
 
 **Current owner:** `isOneTimeTemplateUsed()` in `src/data/calculations.ts`, intent-specific ledger operations and transaction boundaries in `src/data/services.ts`, and the minimal page adapters in `src/components/VowsPage.tsx`, `src/components/GivingsPage.tsx`, and `src/components/LogPage.tsx`.
+
+## D-013 — Day-start time only defines daily-statistics windows
+
+**Decision:** `dayStartTime` defines the 24-hour window for daily statistics only: today gained/spent points, today fulfillment/receipt counts, and future metrics explicitly identified as daily statistics. It does not define a global business date.
+
+**Rationale:** Daily summaries need a user-configurable day boundary, while historical ledger records and archive identity need stable local-calendar and history semantics.
+
+**Consequence:** Activity before the configured boundary can count in the previous statistics window. The same record keeps its actual `occurredAt` and is grouped in Log by its local natural calendar date. One-time archive eligibility/filtering and one-time identity/history are unaffected. No business-day field or state is persisted; any broader time semantics require a future explicit decision.
+
+**Current owner:** `getDayWindow()` and `calculateTodayStats()` in `src/data/calculations.ts`, `src/hooks/useTemplatePageData.ts`, natural-calendar grouping in `src/components/LogPage.tsx`, and one-time archive filtering in `src/components/CodexPage.tsx`.

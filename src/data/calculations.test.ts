@@ -74,6 +74,22 @@ describe('ledger calculations', () => {
     })
   })
 
+  it('keeps the configured statistics window continuous for exactly 24 hours', () => {
+    const reference = localDate(27, 2, 30)
+    const records = [
+      record(99, localDate(26, 3, 59, 59, 999)),
+      record(5, localDate(26, 4)),
+      record(-2, localDate(27, 3, 59, 59, 999)),
+      record(11, localDate(27, 4)),
+    ]
+    const window = getDayWindow(reference, '04:00')
+
+    expect(window.start).toEqual(localDate(26, 4))
+    expect(window.end).toEqual(localDate(27, 4))
+    expect(window.end.getTime() - window.start.getTime()).toBe(24 * 60 * 60 * 1000)
+    expect(recordsForDay(records, reference, '04:00').map((item) => item.pointsDelta)).toEqual([5, -2])
+  })
+
   it('uses kind and template identity regardless of the historical type snapshot', () => {
     const records = [
       { ...record(5, localDate(26, 9)), id: 'task-shared', kind: 'task' as const, templateId: 'shared' },

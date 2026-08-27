@@ -198,7 +198,7 @@ export default function CodexPage() {
     <p className="section-mark">SOURCE CODEX</p><h2>源典</h2>
 
     <section className="codex-section"><h3>律令</h3><div className="codex-card">
-      <label className="setting-row"><span className="setting-icon"><Clock3 size={18} /></span><span><strong>昼夜分界</strong><small>影响今日统计与终末归档</small></span><input aria-label="昼夜分界" type="time" value={settings.dayStartTime} onChange={(event) => changeDayStart(event.target.value)} /></label>
+      <label className="setting-row"><span className="setting-icon"><Clock3 size={18} /></span><span><strong>昼夜分界</strong><small>仅影响今日统计的起算时间</small></span><input aria-label="昼夜分界" type="time" value={settings.dayStartTime} onChange={(event) => changeDayStart(event.target.value)} /></label>
       <div className="setting-row theme-row"><span className="setting-icon"><Palette size={18} /></span><span><strong>色相</strong><small>选择档案呈现的光影</small></span></div>
       <div className="theme-options" aria-label="色相选择">
         {([['system', '跟随系统', Palette], ['light', '浅色', Sun], ['dark', '深色', MoonStar]] as const).map(([value, label, Icon]) =>

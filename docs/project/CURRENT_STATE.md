@@ -14,6 +14,7 @@ Mutable repository snapshot, reconciled from the real repository on 2026-08-27 (
 * Plan03 started from clean HEAD `479e9bef67cd5e0a50d35ba116357af9271c1c2b`, synchronized with `origin/main`; the user confirmed all six backup/restore contract decisions, and the implementation is delivered without a Dexie schema migration or PWA change.
 * Plan04 starts from clean HEAD `3882f47d394a3c8555c281eebecd01611a4c8fd2`, synchronized with `origin/main`, and is limited to one-time/history semantics investigation. No product source, service, schema, data, UI, PWA, or release behavior is changed by this investigation.
 * Plan05 implements the accepted D-012 one-time identity and historical-correction rules from clean Plan04 tip; its delivery commit and verification are reported in the corresponding `TASK_RESULT`.
+* Plan06 implements accepted D-013 narrow `dayStartTime` semantics: it remains the daily-statistics window owner; Log natural-calendar grouping and one-time archive behavior remain independent.
 * Ignored local/generated material observed: `node_modules/`, `dist/`, `.idea/`, TypeScript build-info files, and `docs/dev-plan.md`. These are not source authority. `docs/dev-plan.md` exists locally but is not tracked by Git; it is deliberately preserved and must not be treated as an active plan.
 
 ## Implemented capabilities evidenced in the repository
@@ -62,6 +63,8 @@ Plan04 investigation verification on 2026-08-27: the one-time page/helper/servic
 
 Plan05 implementation verification on 2026-08-27: `npm ci` passed with 0 audit vulnerabilities; `npm test` passed with 6 files and 30 tests, including identity-based one-time live/backfill enforcement, delete-driven re-availability, cross-kind isolation, live reward affordability, concurrent spend serialization, historical negative balance, legacy duplicate readability, and restore regression; `npm run build` passed with the TypeScript project build and Vite production bundle. No schema migration, restore-contract change, or browser IndexedDB/user-data operation was performed.
 
+Plan06 implementation verification on 2026-08-27: `npm ci` passed with 0 audit vulnerabilities; `npm test` passed with 6 files and 31 tests, including before/at-boundary and exact-24-hour custom day-window coverage; `npm run build` passed with the TypeScript project build and Vite production bundle; `npm audit --omit=optional` reported 0 vulnerabilities. `git diff --check` passed. The implementation is intentionally limited to D-013 documentation/copy plus a day-window regression test; no schema, backup/restore, timezone, Log grouping, one-time archive, PWA, or release behavior is changed, and no browser IndexedDB/user data was read or modified.
+
 ## Delivery and PWA facts
 
 * `vite.config.ts` uses base, manifest `start_url`, and scope `/veil-archive/`; Workbox precaches the application shell/assets and uses `navigateFallback: 'index.html'`.
@@ -75,25 +78,24 @@ Plan05 implementation verification on 2026-08-27: `npm ci` passed with 0 audit v
 * Historical edit/delete and reward/task backfill can produce a negative derived balance by accepted D-012 policy. The current chronological balance display remains descriptive and does not reject negative running values.
 * The schema has no migration layer. CSV is export-only and is not a complete restore contract.
 * Backup/restore v1 policy is accepted and implemented as versioned JSON, replace-all, validate-before-transaction, strict future-version rejection, and code-owned runtime version handling. Merge/partial restore and schema migration remain deferred; Plan04 does not alter that contract.
-* Plan05 implements D-012 without a schema migration or legacy-data rewrite. The UI still needs the manual smoke checks listed below; service-level correctness is covered by the new fake-IndexedDB tests.
-* `dayStartTime` drives today statistics, while log month/day grouping uses local calendar dates. The current 源典 copy says it affects one-time archive behavior, but archive lists are filtered by `templateType === 'oneTime'` and do not read `dayStartTime`.
-* The current tests do not cover service transactions, cross-entity ledger rules, one-time/backfill policy, icon compatibility, or UI behavior. Modal focus behavior, deletion confirmation submission, real touch/safe-area behavior, and the full service-worker update lifecycle lack current automated or device evidence.
+* Plan05 implements D-012 without a schema migration or legacy-data rewrite. Its six specified domain/UI smoke checks were confirmed by the user; broad UI, modal focus, accessibility, real touch/safe-area, and full service-worker lifecycle evidence remain unavailable.
+* `dayStartTime` drives only today statistics. Log month/day grouping uses local calendar dates, and one-time archive filters do not read `dayStartTime`; the 源典 setting copy now states this narrow scope.
+* The current tests cover fake-IndexedDB service transactions, cross-entity ledger rules, one-time live/backfill policy, live reward affordability, concurrent spend serialization, negative historical balance, legacy duplicate readability, and restore regression. Icon compatibility and UI behavior remain outside the current automated suite; modal focus behavior, deletion confirmation submission, real touch/safe-area behavior, and the full service-worker update lifecycle lack current automated or device evidence.
 * `src/data/services.ts` imports icon normalization from the UI icon registry, creating a data-to-UI coupling hotspot.
 * The pre-fix 2026-08-27 audit findings were all build/dev-toolchain findings: direct dev-only `vite@7.2.2` and transitive `postcss@8.5.16`, `nanoid@3.3.15`, `fast-uri@3.1.3`, plus `brace-expansion@5.0.7` and `filelist`'s nested `brace-expansion@2.1.1`. The chains run through Vite or `vite-plugin-pwa`/Workbox during local build/dev work; application source does not import the vulnerable package implementations, and those implementations are not included in the final browser bundle. The fixed lockfile resolves Vite 7.3.6, PostCSS 8.5.26, nanoid 3.3.18, fast-uri 3.1.6, brace-expansion 5.0.9/2.1.4, and the compatible esbuild 0.28.2 toolchain. The after-state audit has no residual advisories; this does not replace future audit review or real-device/production verification.
 
 ## Pending USER CHECK / unresolved policy
 
-Plan03's six backup/restore decisions and Plan05's D-012 one-time/historical-correction decision are accepted and recorded in `DECISIONS.md`. The following remain later decision or verification items and are not silently accepted scope:
+Plan03's six backup/restore decisions, Plan05's D-012 one-time/historical-correction decision, and Plan06's D-013 narrow day-start decision are accepted and recorded in `DECISIONS.md`. The following remain later decision or verification items and are not silently accepted scope:
 
 * the single package/runtime/tag/build version owner and release identity;
 * real-device/manual smoke verification of JSON export, file selection, the two-step replacement dialog, safe-area spacing, and touch behavior;
-* the exact semantic scope of `dayStartTime`;
 * whether the dedicated drag-handle interaction is a permanent product policy;
 * future PR/tag/production/release gates;
 * deployed and installed-PWA/real-device verification.
 
 ## Adoption status and active boundary
 
-Migration adoption is committed as `d48be70` (`docs: adopt development framework`). `Veill-Plan01` is complete and its regression baseline is stable. Plan02 completed the dependency audit/remediation and established the active formal-Plan delivery rule in `AGENTS.md`. Plan03's contract is accepted and implemented as a docs-plus-runtime delivery with no Dexie schema change or data migration. Plan04 completed its investigation and Plan05 accepted and implemented D-012 as the identity-based one-time and truthful historical-correction boundary, without schema migration or legacy rewrite.
+Migration adoption is committed as `d48be70` (`docs: adopt development framework`). `Veill-Plan01` is complete and its regression baseline is stable. Plan02 completed the dependency audit/remediation and established the active formal-Plan delivery rule in `AGENTS.md`. Plan03's contract is accepted and implemented as a docs-plus-runtime delivery with no Dexie schema change or data migration. Plan04 completed its investigation; Plan05 accepted and implemented D-012 as the identity-based one-time and truthful historical-correction boundary; and Plan06 accepted and implemented D-013 as the narrow day-start statistics boundary, all without schema migration or legacy rewrite.
 
 The supplied migration package included the plan, audit, asset manifest, and old context exports. The separately named `00-START_HERE` through `10-MIGRATION_ADOPTION_BRIEF` files were not present in the supplied directory; the available materials were preserved outside the repository and no uncertain historical file was deleted or moved.
