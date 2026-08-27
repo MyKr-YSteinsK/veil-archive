@@ -2,8 +2,10 @@ import { useCallback, useMemo, useState, type FormEvent, type ReactNode } from '
 import { Check, Gift, Plus } from 'lucide-react'
 import {
   compareTemplates,
+  isOneTimeTemplateUsed,
   isWithinDay,
   ledgerRecordService,
+  LedgerRuleError,
   rewardTemplateService,
   type LedgerRecord,
   type RewardTemplate,
@@ -47,8 +49,10 @@ export default function GivingsPage() {
   const oneTime = useMemo(
     () => templates.filter((template) => {
       if (template.type !== 'oneTime') return false
-      const receipt = recordsByTemplate.get(template.id)?.[0]
-      return !receipt || isWithinDay(receipt.occurredAt, todayWindow)
+      const records = recordsByTemplate.get(template.id) ?? []
+      const used = isOneTimeTemplateUsed(records, 'reward', template.id)
+      const receipt = records[0]
+      return !used || (receipt !== undefined && isWithinDay(receipt.occurredAt, todayWindow))
     }).sort(compareTemplates),
     [recordsByTemplate, templates, todayWindow],
   )
@@ -119,22 +123,24 @@ export default function GivingsPage() {
       showToast(`残响不足，还缺 ${missing} 残响`)
       return
     }
-    if (template.type === 'oneTime' && (recordsByTemplate.get(template.id)?.length ?? 0) > 0) return
+    const records = recordsByTemplate.get(template.id) ?? []
+    if (template.type === 'oneTime' && isOneTimeTemplateUsed(records, 'reward', template.id)) {
+      showToast('该独一异赐已有历史受赐')
+      return
+    }
     setBusyId(template.id)
     try {
-      await ledgerRecordService.create({
-        kind: 'reward',
-        templateId: template.id,
-        templateType: template.type,
-        titleSnapshot: template.name,
-        iconSnapshot: template.icon,
-        pointsDelta: -template.cost,
-        occurredAt: new Date().toISOString(),
-      })
+      await ledgerRecordService.receiveReward(template.id)
       await refresh()
       showToast(`受赐完成，消耗 ${template.cost} 残响`)
-    } catch {
-      showToast('受赐失败，请稍后重试')
+    } catch (error) {
+      if (error instanceof LedgerRuleError && error.code === 'one-time-used') {
+        showToast('该独一异赐已有历史受赐')
+      } else if (error instanceof LedgerRuleError && error.code === 'insufficient-balance') {
+        showToast(`残响不足，还缺 ${error.missing ?? template.cost} 残响`)
+      } else {
+        showToast('受赐失败，请稍后重试')
+      }
     } finally {
       setBusyId(undefined)
     }
@@ -143,6 +149,7 @@ export default function GivingsPage() {
   const renderCard = (template: RewardTemplate, dragHandle: ReactNode) => <GivingCard
     template={template}
     records={recordsByTemplate.get(template.id) ?? []}
+    used={isOneTimeTemplateUsed(recordsByTemplate.get(template.id) ?? [], 'reward', template.id)}
     todayWindow={todayWindow}
     balance={balance}
     busy={busyId === template.id}
@@ -181,9 +188,10 @@ export default function GivingsPage() {
   </main>
 }
 
-function GivingCard({ template, records, todayWindow, balance, busy, dragHandle, onReceive, onEdit, onRemove, onPin }: {
+function GivingCard({ template, records, used, todayWindow, balance, busy, dragHandle, onReceive, onEdit, onRemove, onPin }: {
   template: RewardTemplate
   records: LedgerRecord[]
+  used: boolean
   todayWindow: DayWindow
   balance: number
   busy: boolean
@@ -193,7 +201,7 @@ function GivingCard({ template, records, todayWindow, balance, busy, dragHandle,
   onRemove: () => void
   onPin: () => void
 }) {
-  const received = template.type === 'oneTime' && records.length > 0
+  const received = template.type === 'oneTime' && used
   const affordable = balance >= template.cost
   const todayCount = records.filter((record) => isWithinDay(record.occurredAt, todayWindow)).length
   const primaryAction = <button className={`fulfill-button receive-button${!affordable && !received ? ' insufficient' : ''}`} type="button" disabled={received || busy} aria-disabled={!affordable || received} aria-busy={busy} onClick={onReceive}>{received ? '已受赐' : busy ? '受赐中…' : '受赐'}</button>

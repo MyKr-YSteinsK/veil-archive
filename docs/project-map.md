@@ -138,7 +138,7 @@ Responsibilities:
 * Fulfill task templates.
 * Separate repeatable and one-time vows.
 * Keep positive ledger deltas, completion rules, and vow copy explicit.
-* Keep the current one-time completion/display checks in this page adapter; they are not a centralized data-service invariant.
+* Use the canonical identity-based one-time state for display and optimistic interaction feedback; final fulfillment correctness belongs to the ledger service transaction.
 
 Likely change locations:
 
@@ -161,7 +161,7 @@ Responsibilities:
 * Receive reward templates.
 * Prevent receiving rewards when balance is insufficient.
 * Keep affordability, negative ledger deltas, receipt rules, and giving copy explicit.
-* Keep the current one-time receipt and affordability checks in this page adapter; the data service does not atomically enforce them.
+* Use the canonical identity-based one-time state and current-balance display for optimistic feedback; final one-time and affordability correctness belongs to the ledger service transaction.
 
 Likely change locations:
 
@@ -185,7 +185,7 @@ Responsibilities:
 * Edit ledger records.
 * Delete ledger records.
 * Show record details and balance flow.
-* Backfill from active templates without a centralized one-time-use guard.
+* Backfill from active templates through an explicit service intent that enforces one-time usage without applying live reward affordability.
 
 Likely change locations:
 
@@ -360,7 +360,7 @@ Services:
 
 Change this file when adding persistence behavior, validation calls, or transaction boundaries.
 
-Current boundary: field validation, snapshot writes, soft deletion, ordering, and settings persistence live here; cross-entity template-reference, one-time-use, and affordability enforcement is not centralized here.
+Current boundary: field validation, snapshot writes, soft deletion, ordering, and settings persistence live here. Intent-specific ledger operations own active-template lookup, identity-based one-time duplicate prevention, and atomic live reward affordability; raw backup restore remains an independent replace-all transaction.
 
 ### `src/data/calculations.ts`
 
@@ -372,7 +372,7 @@ Current responsibilities:
 * Day-window calculation.
 * Today stats.
 * Record filtering.
-* Expose a one-time template usage helper; current page/service enforcement is not centralized here.
+* Expose the canonical identity-based one-time usage helper used by pages and ledger services.
 
 This is the best place for unit tests.
 
@@ -403,7 +403,7 @@ Current responsibilities:
 
 ### `src/data/*.test.ts`
 
-Own the current pure/data-logic regression baseline. The tests exercise calculations, day-window/today statistics, field and delta validation, template ordering/pinning derivation, and export-only CSV structure/escaping without introducing service, IndexedDB, UI, PWA, or release-policy tests.
+Own the current pure/data-logic and fake-IndexedDB service regression baseline. The tests exercise calculations, day-window/today statistics, field and delta validation, template ordering/pinning derivation, CSV structure/escaping, intent-specific ledger invariants, transaction serialization, legacy compatibility, and backup/restore behavior; they do not provide browser, PWA, or real-device evidence.
 
 ### `vitest.config.ts`
 

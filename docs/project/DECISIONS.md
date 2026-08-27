@@ -109,3 +109,13 @@ This file records accepted durable product and architecture decisions. It is not
 **Consequence:** Restore is explicitly destructive and requires a two-step confirmation. Soft-deleted templates, ordering/pinning, settings, raw icon values, ledger snapshots, and valid template references are preserved; missing referenced templates are rejected. Merge, partial restore, and schema migration remain deferred.
 
 **Current owner:** `src/data/backup.ts`, `src/components/CodexPage.tsx`, and `src/data/backup.test.ts`.
+
+## D-012 — Identity-based one-time usage and truthful historical corrections
+
+**Decision:** A one-time template is used when any ledger record exists for the same `kind + templateId` identity. The historical `templateType` snapshot does not determine current availability. Normal actions and historical backfills both consume one-time usage; deleting the final associated usage record reopens the template, while editing a record's title, points, or time does not. Historical edits, deletes, and backfills may produce a negative ledger-derived balance. Normal live reward receipts require affordability in the data/service transaction, while reward backfills do not use current-balance or historical-running-balance affordability.
+
+**Rationale:** One-time availability must follow the preserved ledger identity across template type changes and must not be bypassable through the backfill path or concurrent calls. Historical corrections are ledger facts, so blocking or compensating them based on a derived balance would distort the archive. Live spending remains bounded by the current ledger-derived balance at the moment of the atomic receipt.
+
+**Consequence:** New live and backfill writes enforce identity-based one-time duplicate prevention in the data/service layer. Legacy duplicate or mixed-snapshot one-time history remains readable and is not rewritten; its identity remains used until all associated records are explicitly deleted. Restore continues to use the independent D-011 raw replace-all path and does not apply live affordability checks or one-time write guards while importing valid legacy history.
+
+**Current owner:** `isOneTimeTemplateUsed()` in `src/data/calculations.ts`, intent-specific ledger operations and transaction boundaries in `src/data/services.ts`, and the minimal page adapters in `src/components/VowsPage.tsx`, `src/components/GivingsPage.tsx`, and `src/components/LogPage.tsx`.

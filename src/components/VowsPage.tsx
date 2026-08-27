@@ -3,7 +3,9 @@ import { Check, Plus, ScrollText } from 'lucide-react'
 import {
   compareTemplates,
   isWithinDay,
+  isOneTimeTemplateUsed,
   ledgerRecordService,
+  LedgerRuleError,
   taskTemplateService,
   type LedgerRecord,
   type TaskTemplate,
@@ -47,8 +49,10 @@ export default function VowsPage() {
   const oneTime = useMemo(
     () => templates.filter((template) => {
       if (template.type !== 'oneTime') return false
-      const completion = recordsByTemplate.get(template.id)?.[0]
-      return !completion || isWithinDay(completion.occurredAt, todayWindow)
+      const records = recordsByTemplate.get(template.id) ?? []
+      const used = isOneTimeTemplateUsed(records, 'task', template.id)
+      const completion = records[0]
+      return !used || (completion !== undefined && isWithinDay(completion.occurredAt, todayWindow))
     }).sort(compareTemplates),
     [recordsByTemplate, templates, todayWindow],
   )
@@ -114,22 +118,20 @@ export default function VowsPage() {
 
   async function fulfill(template: TaskTemplate) {
     if (busyId) return
-    if (template.type === 'oneTime' && (recordsByTemplate.get(template.id)?.length ?? 0) > 0) return
+    const records = recordsByTemplate.get(template.id) ?? []
+    if (template.type === 'oneTime' && isOneTimeTemplateUsed(records, 'task', template.id)) {
+      showToast('该终末誓约已有历史履约')
+      return
+    }
     setBusyId(template.id)
     try {
-      await ledgerRecordService.create({
-        kind: 'task',
-        templateId: template.id,
-        templateType: template.type,
-        titleSnapshot: template.name,
-        iconSnapshot: template.icon,
-        pointsDelta: template.points,
-        occurredAt: new Date().toISOString(),
-      })
+      await ledgerRecordService.fulfillTask(template.id)
       await refresh()
       showToast(`履约完成，获得 ${template.points} 残响`)
-    } catch {
-      showToast('履约失败，请稍后重试')
+    } catch (error) {
+      showToast(error instanceof LedgerRuleError && error.code === 'one-time-used'
+        ? '该终末誓约已有历史履约'
+        : '履约失败，请稍后重试')
     } finally {
       setBusyId(undefined)
     }
@@ -138,6 +140,7 @@ export default function VowsPage() {
   const renderCard = (template: TaskTemplate, dragHandle: ReactNode) => <VowCard
     template={template}
     records={recordsByTemplate.get(template.id) ?? []}
+    used={isOneTimeTemplateUsed(recordsByTemplate.get(template.id) ?? [], 'task', template.id)}
     todayWindow={todayWindow}
     busy={busyId === template.id}
     dragHandle={dragHandle}
@@ -174,9 +177,10 @@ export default function VowsPage() {
   </main>
 }
 
-function VowCard({ template, records, todayWindow, busy, dragHandle, onFulfill, onEdit, onRemove, onPin }: {
+function VowCard({ template, records, used, todayWindow, busy, dragHandle, onFulfill, onEdit, onRemove, onPin }: {
   template: TaskTemplate
   records: LedgerRecord[]
+  used: boolean
   todayWindow: DayWindow
   busy: boolean
   dragHandle: ReactNode
@@ -185,7 +189,7 @@ function VowCard({ template, records, todayWindow, busy, dragHandle, onFulfill, 
   onRemove: () => void
   onPin: () => void
 }) {
-  const completed = template.type === 'oneTime' && records.length > 0
+  const completed = template.type === 'oneTime' && used
   const todayCount = records.filter((record) => isWithinDay(record.occurredAt, todayWindow)).length
   const primaryAction = <button className="fulfill-button" type="button" disabled={completed || busy} aria-busy={busy} onClick={onFulfill}>{completed ? '已履约' : busy ? '履约中…' : '履约'}</button>
 

@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { BookOpenText, ChevronDown, Edit3, Plus, Trash2, X } from 'lucide-react'
 import {
   calculateBalance,
+  isOneTimeTemplateUsed,
   ledgerRecordService,
+  LedgerRuleError,
   rewardTemplateService,
   taskTemplateService,
   type LedgerKind,
@@ -67,9 +69,13 @@ export default function LogPage() {
 
   const balance = useMemo(() => calculateBalance(records), [records])
   const choices = useMemo<TemplateChoice[]>(() => [
-    ...tasks.map((task) => ({ key: `task:${task.id}`, id: task.id, kind: 'task' as const, name: task.name, icon: task.icon, amount: task.points, type: task.type })),
-    ...rewards.map((reward) => ({ key: `reward:${reward.id}`, id: reward.id, kind: 'reward' as const, name: reward.name, icon: reward.icon, amount: reward.cost, type: reward.type })),
-  ], [rewards, tasks])
+    ...tasks
+      .map((task) => ({ key: `task:${task.id}`, id: task.id, kind: 'task' as const, name: task.name, icon: task.icon, amount: task.points, type: task.type }))
+      .filter((choice) => choice.type !== 'oneTime' || !isOneTimeTemplateUsed(records, 'task', choice.id)),
+    ...rewards
+      .map((reward) => ({ key: `reward:${reward.id}`, id: reward.id, kind: 'reward' as const, name: reward.name, icon: reward.icon, amount: reward.cost, type: reward.type }))
+      .filter((choice) => choice.type !== 'oneTime' || !isOneTimeTemplateUsed(records, 'reward', choice.id)),
+  ], [records, rewards, tasks])
 
   const groups = useMemo(() => groupRecords(
     filter === 'all' ? records : records.filter((record) => record.kind === filter),
@@ -111,17 +117,10 @@ export default function LogPage() {
     event.preventDefault()
     const template = choices.find((choice) => choice.key === addForm.templateKey)
     if (!template) return setFormError('请选择一个现有誓约或异赐')
-    if (template.kind === 'reward' && balance < template.amount) {
-      return setFormError(`残响不足，还缺 ${template.amount - balance} 残响`)
-    }
     try {
-      await ledgerRecordService.create({
+      await ledgerRecordService.createBackfill({
         kind: template.kind,
         templateId: template.id,
-        templateType: template.type,
-        titleSnapshot: template.name,
-        iconSnapshot: template.icon,
-        pointsDelta: template.kind === 'task' ? template.amount : -template.amount,
         occurredAt: new Date(addForm.occurredAt).toISOString(),
       })
       await refresh()
@@ -129,7 +128,7 @@ export default function LogPage() {
       setExpandedMonths((current) => new Set(current).add(monthKey(new Date(addForm.occurredAt))))
       setToast('帷录已补录')
     } catch (error) {
-      setFormError(error instanceof Error ? translateError(error.message) : '补录失败')
+      setFormError(translateActionError(error, '补录失败'))
     }
   }
 
@@ -291,4 +290,12 @@ function translateError(message: string) {
   if (message.includes('pointsDelta')) return '履约残响须为正整数，受赐残响须为负整数'
   if (message.includes('valid date')) return '请选择有效的发生时刻'
   return message
+}
+
+function translateActionError(error: unknown, fallback: string) {
+  if (error instanceof LedgerRuleError) {
+    if (error.code === 'one-time-used') return '该一次性模板已有历史帷录，无法重复补录'
+    if (error.code === 'template-not-found') return '所选模板已不可用，请重新选择'
+  }
+  return error instanceof Error ? translateError(error.message) : fallback
 }

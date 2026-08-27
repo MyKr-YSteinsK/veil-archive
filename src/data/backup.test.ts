@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto'
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { calculateBalance } from './calculations'
 import { APP_VERSION } from './changelog'
 import { db } from './database'
 import {
@@ -116,5 +117,40 @@ describe('archive JSON backup', () => {
       key: 'settings', themeMode: 'light', dayStartTime: '00:00', appVersion: APP_VERSION,
     })
     bulkAdd.mockRestore()
+  })
+
+  it('restores legacy duplicate one-time history and negative balance without rewriting it', async () => {
+    const legacyRecords = [
+      record,
+      {
+        ...record,
+        id: 'legacy-reward-a',
+        kind: 'reward' as const,
+        templateId: reward.id,
+        templateType: 'oneTime' as const,
+        titleSnapshot: reward.name,
+        iconSnapshot: reward.icon,
+        pointsDelta: -reward.cost,
+      },
+      {
+        ...record,
+        id: 'legacy-reward-b',
+        kind: 'reward' as const,
+        templateId: reward.id,
+        templateType: 'repeatable' as const,
+        titleSnapshot: reward.name,
+        iconSnapshot: reward.icon,
+        pointsDelta: -reward.cost,
+        occurredAt: '2026-08-07T00:00:00.000Z',
+        createdAt: '2026-08-07T00:00:00.000Z',
+        updatedAt: '2026-08-07T00:00:00.000Z',
+      },
+    ]
+    const source = createArchiveBackup([task], [reward], legacyRecords, { themeMode: 'dark', dayStartTime: '05:30' })
+
+    await restoreArchiveBackup(source)
+
+    expect(await db.ledgerRecords.bulkGet(legacyRecords.map((item) => item.id))).toEqual(legacyRecords)
+    expect(calculateBalance(await db.ledgerRecords.toArray())).toBe(-1)
   })
 })

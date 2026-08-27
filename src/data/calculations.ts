@@ -71,6 +71,10 @@ export function countRecords(
   ).length
 }
 
-export function isOneTimeTemplateUsed(records: readonly LedgerRecord[], templateId: string): boolean {
-  return records.some((record) => record.templateId === templateId && record.templateType === 'oneTime')
+export function isOneTimeTemplateUsed(
+  records: readonly Pick<LedgerRecord, 'kind' | 'templateId'>[],
+  kind: LedgerKind,
+  templateId: string,
+): boolean {
+  return records.some((record) => record.kind === kind && record.templateId === templateId)
 }

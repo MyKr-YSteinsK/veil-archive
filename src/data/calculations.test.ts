@@ -3,6 +3,7 @@ import {
   calculateBalance,
   calculateTodayStats,
   getDayWindow,
+  isOneTimeTemplateUsed,
   recordsForDay,
 } from './calculations'
 import type { LedgerRecord } from './types'
@@ -71,5 +72,17 @@ describe('ledger calculations', () => {
       taskCount: 1,
       rewardCount: 1,
     })
+  })
+
+  it('uses kind and template identity regardless of the historical type snapshot', () => {
+    const records = [
+      { ...record(5, localDate(26, 9)), id: 'task-shared', kind: 'task' as const, templateId: 'shared' },
+      { ...record(-2, localDate(26, 10)), id: 'reward-shared', kind: 'reward' as const, templateId: 'shared', templateType: 'oneTime' as const },
+    ]
+
+    expect(isOneTimeTemplateUsed(records, 'task', 'shared')).toBe(true)
+    expect(isOneTimeTemplateUsed(records, 'reward', 'shared')).toBe(true)
+    expect(isOneTimeTemplateUsed(records, 'task', 'missing')).toBe(false)
+    expect(isOneTimeTemplateUsed(records, 'reward', 'missing')).toBe(false)
   })
 })

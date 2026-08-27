@@ -13,6 +13,7 @@ Mutable repository snapshot, reconciled from the real repository on 2026-08-27 (
 * Plan02 completed dependency audit/remediation, repository delivery-rule documentation, and current-state/patch-log updates; its final pushed tip is `479e9be`.
 * Plan03 started from clean HEAD `479e9bef67cd5e0a50d35ba116357af9271c1c2b`, synchronized with `origin/main`; the user confirmed all six backup/restore contract decisions, and the implementation is delivered without a Dexie schema migration or PWA change.
 * Plan04 starts from clean HEAD `3882f47d394a3c8555c281eebecd01611a4c8fd2`, synchronized with `origin/main`, and is limited to one-time/history semantics investigation. No product source, service, schema, data, UI, PWA, or release behavior is changed by this investigation.
+* Plan05 implements the accepted D-012 one-time identity and historical-correction rules from clean Plan04 tip; its delivery commit and verification are reported in the corresponding `TASK_RESULT`.
 * Ignored local/generated material observed: `node_modules/`, `dist/`, `.idea/`, TypeScript build-info files, and `docs/dev-plan.md`. These are not source authority. `docs/dev-plan.md` exists locally but is not tracked by Git; it is deliberately preserved and must not be treated as an active plan.
 
 ## Implemented capabilities evidenced in the repository
@@ -31,12 +32,12 @@ Mutable repository snapshot, reconciled from the real repository on 2026-08-27 (
 * IndexedDB is the persistence source of truth. Balance is recalculated from all ledger `pointsDelta` values.
 * Template edits do not rewrite historical ledger snapshots. Template deletion sets `deletedAt`; ledger deletion is physical and separate. Full clearing uses a Dexie read/write transaction over all four tables.
 * Template ordering/pinning is persisted through optional `sortOrder`/`pinned` fields. The CSV generator exports templates (including deleted metadata) and ledger records, but not settings, ordering/pinning state, or an import/restore format.
-* `src/data/calculations.ts` exports `isOneTimeTemplateUsed`, but current page/service code does not use it as a centralized invariant. One-time completion/receipt checks and reward affordability remain primarily in page handlers; the log backfill path does not have a unified one-time-use guard.
+* `src/data/calculations.ts` owns the canonical `isOneTimeTemplateUsed(records, kind, templateId)` identity predicate. Intent-specific ledger service operations enforce one-time duplicate prevention and live reward affordability inside Dexie read/write transactions; raw restore remains independent.
 * A repository scan found no application state store besides the four IndexedDB tables; PWA/browser caches are delivery state, not user archive data. `settings` is a singleton row keyed internally as `settings`.
 * The current CSV remains export-only: it carries template and ledger rows but omits settings, sort order, pin state, and backup/schema format metadata. It cannot restore the complete user state.
 * Versioned JSON backup v1 now covers all four tables' user state, including soft-deleted templates, ordering/pinning, settings, ledger snapshots, optional references, and raw icon values. Restore is replace-all only, validates before writing, and uses one Dexie transaction over all four tables; the persisted runtime `appVersion` remains code-owned.
-* One-time usage evidence is split: `useTemplatePageData` groups records by the current page's ledger kind and `templateId`; Vows/Givings page guards use any grouped record, while `isOneTimeTemplateUsed()` additionally requires `record.templateType === 'oneTime'` and currently has no active caller. Template type edits are allowed by both template services/forms without a policy warning.
-* The Log backfill choices contain active repeatable and one-time task/reward templates without a one-time usage filter. Reward backfill checks current aggregate balance, while its selected historical `occurredAt` does not affect that check.
+* `useTemplatePageData` still groups records by the current page's ledger kind and `templateId`; Vows/Givings use the canonical identity predicate for display/early UX guards, while service transactions re-check the real database state. Template type edits remain allowed and do not rewrite history.
+* Log backfill choices hide currently used one-time templates and submit an explicit backfill intent. The service enforces the same identity rule for task/reward backfills and does not apply current-balance or historical-running-balance affordability to reward backfills.
 * Ledger edit/delete preserve the ledger-derived balance model but have no final-balance or running-balance guard. The accepted backup restore validates record fields/signs/references but does not enforce one-time uniqueness or non-negative aggregate/running balance, so valid legacy inconsistencies remain representable without automatic rewrite.
 
 ## Commands and verification semantics
@@ -49,7 +50,7 @@ The current `package.json` scripts are:
 * `npm run preview`: serve existing `dist/` output.
 * `npm test`: run `vitest run` through Vitest 4.1.11 in Node environment against `src/data/**/*.test.ts`.
 
-The Plan01 regression baseline has 4 test files and 13 passing tests covering calculations, validation, template ordering, and CSV export; the current suite has 5 test files and 17 passing tests after the backup/restore coverage. There is no lint script, standalone typecheck script, browser automation, import/migration command, or production-smoke command. Existing pre-baseline `docs/patch-log.md` entries are historical evidence only; they are not a current CI run. Real device, installed-PWA, deployed-site, and offline lifecycle checks are not evidenced in this repository snapshot.
+The Plan01 regression baseline has 4 test files and 13 passing tests covering calculations, validation, template ordering, and CSV export; the current suite has 6 test files and 30 passing tests after backup/restore and service-invariant coverage. There is no lint script, standalone typecheck script, browser automation, import/migration command, or production-smoke command. Existing pre-baseline `docs/patch-log.md` entries are historical evidence only; they are not a current CI run. Real device, installed-PWA, deployed-site, and offline lifecycle checks are not evidenced in this repository snapshot.
 
 Migration verification on 2026-08-26: `npm run build` passed, running the repository's `tsc -b && vite build` command and refreshing ignored `dist/` output. Plan01 verification on 2026-08-26 also passed `npm test` with 4 files and 13 tests. These checks prove the TypeScript project build, Vite production bundling, and current pure-logic baseline only; they do not prove browser UX, offline lifecycle, installed-PWA behavior, production identity, or historical-data compatibility.
 
@@ -58,6 +59,8 @@ Plan02 dependency verification on 2026-08-27: the pre-fix lockfile produced 5 hi
 Plan03 implementation verification on 2026-08-27: `npm test` passed with 5 files and 17 tests, including fake-IndexedDB full-fidelity, version/reference rejection, replacement, and mid-transaction rollback coverage; `npm run build` passed with the TypeScript project build and Vite production bundle; `npm audit --omit=optional` reported 0 vulnerabilities. No browser IndexedDB/user data was read or modified.
 
 Plan04 investigation verification on 2026-08-27: the one-time page/helper/service/backfill paths, type transitions, soft-delete/history behavior, ledger edit/delete, final and chronological balance calculations, reward backfill affordability, and backup-restore legacy compatibility were re-read; the existing `npm test` baseline passed with 5 files and 17 tests. No product source or user data was modified.
+
+Plan05 implementation verification on 2026-08-27: `npm ci` passed with 0 audit vulnerabilities; `npm test` passed with 6 files and 30 tests, including identity-based one-time live/backfill enforcement, delete-driven re-availability, cross-kind isolation, live reward affordability, concurrent spend serialization, historical negative balance, legacy duplicate readability, and restore regression; `npm run build` passed with the TypeScript project build and Vite production bundle. No schema migration, restore-contract change, or browser IndexedDB/user-data operation was performed.
 
 ## Delivery and PWA facts
 
@@ -68,11 +71,11 @@ Plan04 investigation verification on 2026-08-27: the one-time page/helper/servic
 
 ## Known risks and verification gaps
 
-* Domain invariants for one-time use, template references, and affordability are not fully enforced in the data service or one transaction boundary. One-time page guards use any same-identity history, the exported helper uses one-time snapshots only, and backfill can bypass both; these are recorded investigation facts, not implementation scope.
-* Historical edit/delete and reward/task backfill can produce a negative derived balance because only ledger field/sign validation is enforced. The current chronological balance display is descriptive and does not reject negative running values.
+* New live and backfill ledger writes now enforce one-time usage by same-kind template identity in service transactions; live reward affordability is also transaction-owned. Legacy duplicate/mixed-snapshot history remains intentionally readable and is not rewritten.
+* Historical edit/delete and reward/task backfill can produce a negative derived balance by accepted D-012 policy. The current chronological balance display remains descriptive and does not reject negative running values.
 * The schema has no migration layer. CSV is export-only and is not a complete restore contract.
 * Backup/restore v1 policy is accepted and implemented as versioned JSON, replace-all, validate-before-transaction, strict future-version rejection, and code-owned runtime version handling. Merge/partial restore and schema migration remain deferred; Plan04 does not alter that contract.
-* Plan04's one-time and historical-balance contract is pending USER DECISION. No service hardening, new guard, warning, balance policy, or legacy-data rewrite has been implemented.
+* Plan05 implements D-012 without a schema migration or legacy-data rewrite. The UI still needs the manual smoke checks listed below; service-level correctness is covered by the new fake-IndexedDB tests.
 * `dayStartTime` drives today statistics, while log month/day grouping uses local calendar dates. The current 源典 copy says it affects one-time archive behavior, but archive lists are filtered by `templateType === 'oneTime'` and do not read `dayStartTime`.
 * The current tests do not cover service transactions, cross-entity ledger rules, one-time/backfill policy, icon compatibility, or UI behavior. Modal focus behavior, deletion confirmation submission, real touch/safe-area behavior, and the full service-worker update lifecycle lack current automated or device evidence.
 * `src/data/services.ts` imports icon normalization from the UI icon registry, creating a data-to-UI coupling hotspot.
@@ -80,12 +83,10 @@ Plan04 investigation verification on 2026-08-27: the one-time page/helper/servic
 
 ## Pending USER CHECK / unresolved policy
 
-Plan03's six backup/restore decisions are accepted and recorded in `DECISIONS.md`. Plan04 is intentionally ending at USER CHECK; its four policy groups below are recommendations only and are not accepted durable decisions. The following remain later decision or verification items and are not silently accepted scope:
+Plan03's six backup/restore decisions and Plan05's D-012 one-time/historical-correction decision are accepted and recorded in `DECISIONS.md`. The following remain later decision or verification items and are not silently accepted scope:
 
 * the single package/runtime/tag/build version owner and release identity;
 * real-device/manual smoke verification of JSON export, file selection, the two-step replacement dialog, safe-area spacing, and touch behavior;
-* whether to adopt the recommended one-time identity/backfill/history semantics and move correctness enforcement into the data/service transaction boundary;
-* whether to adopt the recommended historical negative-balance and reward-backfill semantics;
 * the exact semantic scope of `dayStartTime`;
 * whether the dedicated drag-handle interaction is a permanent product policy;
 * future PR/tag/production/release gates;
@@ -93,6 +94,6 @@ Plan03's six backup/restore decisions are accepted and recorded in `DECISIONS.md
 
 ## Adoption status and active boundary
 
-Migration adoption is committed as `d48be70` (`docs: adopt development framework`). `Veill-Plan01` is complete and its regression baseline is stable. Plan02 completed the dependency audit/remediation and established the active formal-Plan delivery rule in `AGENTS.md`. Plan03's contract is accepted and implemented as a docs-plus-runtime delivery with no Dexie schema change or data migration. Plan04 has completed investigation only and is pending four USER DECISION policy groups; the next implementation boundary is a separate Plan05 after confirmation.
+Migration adoption is committed as `d48be70` (`docs: adopt development framework`). `Veill-Plan01` is complete and its regression baseline is stable. Plan02 completed the dependency audit/remediation and established the active formal-Plan delivery rule in `AGENTS.md`. Plan03's contract is accepted and implemented as a docs-plus-runtime delivery with no Dexie schema change or data migration. Plan04 completed its investigation and Plan05 accepted and implemented D-012 as the identity-based one-time and truthful historical-correction boundary, without schema migration or legacy rewrite.
 
 The supplied migration package included the plan, audit, asset manifest, and old context exports. The separately named `00-START_HERE` through `10-MIGRATION_ADOPTION_BRIEF` files were not present in the supplied directory; the available materials were preserved outside the repository and no uncertain historical file was deleted or moved.

@@ -27,6 +27,7 @@ export {
 } from './calculations'
 export {
   clearAllData,
+  LedgerRuleError,
   ledgerRecordService,
   rewardTemplateService,
   settingsService,

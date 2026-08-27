@@ -1,8 +1,10 @@
 import { db, type StoredSettings } from './database'
 import { APP_VERSION } from './changelog'
 import { normalizeIconId } from '../components/ui/iconRegistry'
+import { calculateBalance, isOneTimeTemplateUsed } from './calculations'
 import { createNextSortOrder, produceReorderPatch } from './templateOrdering'
 import type {
+  LedgerBackfillInput,
   LedgerRecord,
   LedgerRecordChanges,
   NewLedgerRecord,
@@ -34,6 +36,15 @@ const DEFAULT_SETTINGS: Readonly<Settings> = {
 
 const now = () => new Date().toISOString()
 const newId = () => crypto.randomUUID()
+
+export type LedgerRuleCode = 'template-not-found' | 'one-time-used' | 'insufficient-balance'
+
+export class LedgerRuleError extends Error {
+  constructor(readonly code: LedgerRuleCode, message: string, readonly missing?: number) {
+    super(message)
+    this.name = 'LedgerRuleError'
+  }
+}
 
 function taskValues(input: NewTaskTemplate) {
   return {
@@ -148,22 +159,86 @@ export const rewardTemplateService = {
 export const ledgerRecordService = {
   list: () => db.ledgerRecords.orderBy('occurredAt').reverse().toArray(),
   get: (id: string) => db.ledgerRecords.get(id),
-  async create(input: NewLedgerRecord): Promise<LedgerRecord> {
-    const timestamp = now()
-    const item: LedgerRecord = {
-      id: newId(),
-      kind: input.kind,
-      templateId: input.templateId,
-      templateType: requireTemplateType(input.templateType),
-      titleSnapshot: requireName(input.titleSnapshot, 'titleSnapshot'),
-      iconSnapshot: normalizeIconId(requireIcon(input.iconSnapshot)),
-      pointsDelta: requireLedgerDelta(input.kind, input.pointsDelta),
-      occurredAt: requireIsoDate(input.occurredAt, 'occurredAt'),
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    }
-    await db.ledgerRecords.add(item)
-    return item
+  async fulfillTask(templateId: string): Promise<LedgerRecord> {
+    return db.transaction('rw', [db.taskTemplates, db.ledgerRecords], async () => {
+      const template = await db.taskTemplates.get(templateId)
+      if (!template || template.deletedAt) throw new LedgerRuleError('template-not-found', 'Task template not found')
+      const records = await db.ledgerRecords.toArray()
+      ensureOneTimeAvailable(records, 'task', template.id, template.type)
+      const item = buildLedgerRecord({
+        kind: 'task',
+        templateId: template.id,
+        templateType: template.type,
+        titleSnapshot: template.name,
+        iconSnapshot: template.icon,
+        pointsDelta: template.points,
+        occurredAt: new Date().toISOString(),
+      })
+      await db.ledgerRecords.add(item)
+      return item
+    })
+  },
+  async receiveReward(templateId: string): Promise<LedgerRecord> {
+    return db.transaction('rw', [db.rewardTemplates, db.ledgerRecords], async () => {
+      const template = await db.rewardTemplates.get(templateId)
+      if (!template || template.deletedAt) throw new LedgerRuleError('template-not-found', 'Reward template not found')
+      const records = await db.ledgerRecords.toArray()
+      ensureOneTimeAvailable(records, 'reward', template.id, template.type)
+      const balance = calculateBalance(records)
+      if (balance < template.cost) {
+        throw new LedgerRuleError('insufficient-balance', `Insufficient balance by ${template.cost - balance}`, template.cost - balance)
+      }
+      const item = buildLedgerRecord({
+        kind: 'reward',
+        templateId: template.id,
+        templateType: template.type,
+        titleSnapshot: template.name,
+        iconSnapshot: template.icon,
+        pointsDelta: -template.cost,
+        occurredAt: new Date().toISOString(),
+      })
+      await db.ledgerRecords.add(item)
+      return item
+    })
+  },
+  async createBackfill(input: LedgerBackfillInput): Promise<LedgerRecord> {
+    return db.transaction('rw', [db.taskTemplates, db.rewardTemplates, db.ledgerRecords], async () => {
+      const records = await db.ledgerRecords.toArray()
+      const occurredAt = requireIsoDate(input.occurredAt, 'occurredAt')
+      if (input.kind === 'task') {
+        const template = await db.taskTemplates.get(input.templateId)
+        if (!template || template.deletedAt) throw new LedgerRuleError('template-not-found', 'Task template not found')
+        ensureOneTimeAvailable(records, 'task', template.id, template.type)
+        const item = buildLedgerRecord({
+          kind: 'task',
+          templateId: template.id,
+          templateType: template.type,
+          titleSnapshot: template.name,
+          iconSnapshot: template.icon,
+          pointsDelta: template.points,
+          occurredAt,
+        })
+        await db.ledgerRecords.add(item)
+        return item
+      }
+      if (input.kind === 'reward') {
+        const template = await db.rewardTemplates.get(input.templateId)
+        if (!template || template.deletedAt) throw new LedgerRuleError('template-not-found', 'Reward template not found')
+        ensureOneTimeAvailable(records, 'reward', template.id, template.type)
+        const item = buildLedgerRecord({
+          kind: 'reward',
+          templateId: template.id,
+          templateType: template.type,
+          titleSnapshot: template.name,
+          iconSnapshot: template.icon,
+          pointsDelta: -template.cost,
+          occurredAt,
+        })
+        await db.ledgerRecords.add(item)
+        return item
+      }
+      throw new TypeError('invalid ledger kind')
+    })
   },
   async update(id: string, changes: LedgerRecordChanges): Promise<LedgerRecord> {
     const current = await db.ledgerRecords.get(id)
@@ -182,6 +257,33 @@ export const ledgerRecordService = {
     if (!(await db.ledgerRecords.get(id))) throw new Error('Ledger record not found')
     await db.ledgerRecords.delete(id)
   },
+}
+
+function buildLedgerRecord(input: NewLedgerRecord): LedgerRecord {
+  const timestamp = now()
+  return {
+    id: newId(),
+    kind: input.kind,
+    templateId: input.templateId,
+    templateType: requireTemplateType(input.templateType),
+    titleSnapshot: requireName(input.titleSnapshot, 'titleSnapshot'),
+    iconSnapshot: normalizeIconId(requireIcon(input.iconSnapshot)),
+    pointsDelta: requireLedgerDelta(input.kind, input.pointsDelta),
+    occurredAt: requireIsoDate(input.occurredAt, 'occurredAt'),
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  }
+}
+
+function ensureOneTimeAvailable(
+  records: readonly LedgerRecord[],
+  kind: LedgerRecord['kind'],
+  templateId: string,
+  templateType: TaskTemplate['type'],
+): void {
+  if (templateType === 'oneTime' && isOneTimeTemplateUsed(records, kind, templateId)) {
+    throw new LedgerRuleError('one-time-used', 'One-time template already has a usage record')
+  }
 }
 
 export const settingsService = {

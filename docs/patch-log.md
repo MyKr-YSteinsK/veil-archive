@@ -383,6 +383,46 @@ Notes:
 
 * The proposal remains pending USER CHECK. A future Plan05 may implement service/transaction invariant hardening only after the policy is confirmed; legacy inconsistent one-time history must not be automatically rewritten in this investigation.
 
+## 2026-08-27 — Harden one-time and live reward domain rules
+
+Type: feature
+
+Summary:
+
+* Recorded the four confirmed Plan04 policies as durable decision D-012: one-time usage follows same-kind template identity, normal and backfill writes consume it, final-usage deletion reopens it, historical corrections remain truthful, live rewards remain affordable, and reward backfill bypasses affordability.
+* Replaced the snapshot-type-only usage helper with `kind + templateId` identity matching. Added intent-specific task fulfillment, reward receipt, and task/reward backfill service operations; one-time checks and live reward balance checks now run inside Dexie read/write transactions.
+* Kept historical edit/delete non-blocking and restore independent, so negative balances and legacy duplicate/mixed-snapshot history remain readable without rewrite or migration.
+* Synchronized Vows/Givings/Log with the service contract: canonical one-time UI state, stale-operation feedback, used one-time backfill filtering, and no current-balance block for reward backfill.
+* Added fake-IndexedDB service/integration coverage for one-time live/backfill behavior, type transitions, deletion re-availability, cross-kind isolation, reward affordability and concurrency, negative historical balance, legacy duplicates, soft deletion, and restore compatibility.
+
+Files:
+
+* `src/data/types.ts`
+* `src/data/calculations.ts`
+* `src/data/calculations.test.ts`
+* `src/data/services.ts`
+* `src/data/services.test.ts`
+* `src/data/backup.test.ts`
+* `src/data/index.ts`
+* `src/components/VowsPage.tsx`
+* `src/components/GivingsPage.tsx`
+* `src/components/LogPage.tsx`
+* `docs/project/DECISIONS.md`
+* `docs/project/CURRENT_STATE.md`
+* `docs/project-map.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* `npm ci`: pass, 0 audit vulnerabilities.
+* `npm test`: pass — 6 files, 30 tests.
+* `npm run build`: pass — TypeScript project build and Vite production bundle.
+* `git diff --check`: pass (Git reported only the repository's existing LF-to-CRLF working-copy warnings).
+
+Notes:
+
+* No schema migration, restore-contract change, legacy rewrite, compensation balance, PWA/release change, or browser IndexedDB/user-data operation was added. Real-device/manual UI smoke remains a USER CHECK.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.

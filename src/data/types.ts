@@ -54,6 +54,12 @@ export type NewLedgerRecord = Pick<
   'kind' | 'templateType' | 'titleSnapshot' | 'iconSnapshot' | 'pointsDelta' | 'occurredAt'
 > & Pick<Partial<LedgerRecord>, 'templateId'>
 
+export type LedgerBackfillInput = {
+  kind: LedgerKind
+  templateId: string
+  occurredAt: string
+}
+
 export type TaskTemplateChanges = Partial<NewTaskTemplate>
 export type RewardTemplateChanges = Partial<NewRewardTemplate>
 export type LedgerRecordChanges = Partial<Pick<LedgerRecord, 'occurredAt' | 'titleSnapshot' | 'pointsDelta'>>
