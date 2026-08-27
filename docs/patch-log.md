@@ -554,6 +554,39 @@ Notes:
 
 * The Pages workflow remains the existing `main`-push / `workflow_dispatch` model. No GitHub Release, workflow redesign, retroactive tag, schema/data migration, backup-contract change, domain-rule change, or installed-PWA lifecycle redesign was made. Installed-PWA lifecycle remains a separate residual verification boundary.
 
+## 2026-08-27 — PWA lifecycle checkpoint and Production promotion
+
+Type: verification
+
+Summary:
+
+* Reconciled the canonical `v1.4.0` release commit, `origin/main`, annotated tag, and remote peeled target; no new release was created.
+* Audited the cache-busted production root, manifest, icons, app assets, service worker, and Workbox runtime. The production manifest preserves the `/veil-archive/` id/start URL/scope and standalone display contract; production artifacts match the local release build.
+* Re-checked the source update chain: root initialization registers the prompt bridge, `onNeedRefresh` exposes the ready state, user action calls `updateServiceWorker(true)`, failures return to ready, and no update path clears or restores IndexedDB data.
+* No pre-1.4.0 installed client or browser automation was available for a controlled transition. Old-installed-client update, true offline browser reload, and real-device standalone checks are recorded as `NOT REPRODUCED`, not as passes.
+* With no confirmed PWA blocker and all core/release/production evidence intact, promoted lifecycle from Stabilization to Production under bounded residual risk.
+
+Files:
+
+* `docs/project/CURRENT_STATE.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* `npm ci`: pass.
+* `npm test`: pass — 7 files, 38 tests.
+* `npm run build`: pass — TypeScript project build and Vite production bundle; existing chunk-size warning retained as non-blocking.
+* `npm audit --omit=optional`: pass, 0 vulnerabilities.
+* `npm run release:check -- --strict --expected 1.4.0`: pass.
+* Production root, manifest, JS/CSS, `sw.js`, Workbox, and required icon requests: HTTP 200 with cache-busting.
+* Manifest contract: pass; service-worker precache/navigation-fallback evidence: pass; local/production artifact SHA-256 comparisons: pass.
+* Pages run #18 for the release SHA: success; production endpoint serves the current release asset.
+* Installed old→new lifecycle: `NOT REPRODUCED`; offline browser reload: `NOT REPRODUCED`; real-device standalone: `NOT REPRODUCED`.
+
+Notes:
+
+* This is a verification/checkpoint update only. No product source, version, package mirror, workflow, schema, backup contract, domain rule, or PWA update implementation changed. Installed-PWA lifecycle remains a bounded residual risk and a separate future verification boundary.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.
