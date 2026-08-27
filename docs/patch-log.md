@@ -521,6 +521,39 @@ Notes:
 
 * Current `APP_VERSION`/top changelog remains `1.3.1`; package and lock root remain `1.0.0`; local/remote tags remain empty. No `1.4.0` bump, changelog entry, tag, GitHub Release, Pages workflow/gate, schema, product feature, or PWA lifecycle change was made. The next boundary is `Veill-Plan09` for the actual release and deployed identity verification.
 
+## 2026-08-27 — Release v1.4.0
+
+Type: release
+
+Summary:
+
+* Promoted the code-owned product version and top in-app changelog entry to `1.4.0`, titled `完整档案与历史规则稳定性`, covering complete JSON backup/replace-all restore, one-time and historical-rule stability, and the narrow day-start semantics.
+* Synchronized `package.json.version` and the root `package-lock.json` mirror to `1.4.0` without dependency churn.
+* Passed the strict release coherence check and the full automated release gate before creating the focused release commit.
+* Created and pushed the first canonical annotated `v1.4.0` tag only after the release commit reached `origin/main` and Pages/production evidence was verified; the tag is immutable and historical `v1.0.0`–`v1.3.1` tags were not created.
+
+Files:
+
+* `src/data/changelog.ts`
+* `package.json`
+* `package-lock.json`
+* `docs/project/CURRENT_STATE.md`
+* `docs/patch-log.md`
+
+Verification:
+
+* `npm ci`: pass.
+* `npm test`: pass — 7 files, 38 tests.
+* `npm run build`: pass — TypeScript project build and Vite production bundle; existing chunk-size warning recorded and not treated as a release blocker.
+* `npm audit --omit=optional`: pass, 0 vulnerabilities.
+* `git diff --check`: pass.
+* `npm run release:check -- --strict --expected 1.4.0`: pass.
+* Release commit/main push, Pages deployment, production endpoint/version evidence, and local/remote annotated tag target are recorded in the final `TASK_RESULT` and GitHub/Git metadata; dynamic run and URL values are intentionally not duplicated here.
+
+Notes:
+
+* The Pages workflow remains the existing `main`-push / `workflow_dispatch` model. No GitHub Release, workflow redesign, retroactive tag, schema/data migration, backup-contract change, domain-rule change, or installed-PWA lifecycle redesign was made. Installed-PWA lifecycle remains a separate residual verification boundary.
+
 ## Unreleased
 
 Add new entries above this section after each meaningful patch.

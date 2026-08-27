@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.3.1'
+export const APP_VERSION = '1.4.0'
 
 export type ChangelogEntry = {
   version: string
@@ -8,6 +8,18 @@ export type ChangelogEntry = {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '1.4.0',
+    date: '2026-08-27',
+    title: '完整档案与历史规则稳定性',
+    items: [
+      '新增版本化 JSON 完整档案备份与替换恢复，保留设置、排序/置顶、软删除模板与帷录历史。',
+      '强化档案恢复的校验、确认与事务回滚，避免不完整档案覆盖本地数据。',
+      '统一一次性誓约与异赐在正常操作和历史补录中的使用规则，实时异赐继续遵守当前残响约束。',
+      '支持历史补录与修订真实表达历史状态，包括负余额。',
+      '明确昼夜分界只影响今日统计，不改变帷录自然日期或一次性封存。',
+    ],
+  },
   {
     version: '1.3.1',
     date: '2026-07-10',
