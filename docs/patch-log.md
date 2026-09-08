@@ -39,7 +39,7 @@ Summary:
 * Corrected the recovery guidance to use the complete versioned JSON archive; CSV remains an inspection/export format.
 * Added ignore rules for local environment files, credentials/keystores, file databases, and the app's generated archive exports.
 * Applied the ordinary non-force npm audit remediation to the lockfile, updating the vulnerable Browserslist chain without changing product dependencies or source code.
-* Added a troubleshooting note for Windows application-control policies that block a newly downloaded `esbuild.exe`; this is not a project environment requirement.
+* Added a troubleshooting note for Windows application-control policies that block newly downloaded `esbuild.exe` or Rollup's native module; this is not a project environment requirement.
 * Recorded the repository/local-material audit boundary in `CURRENT_STATE.md`.
 
 Files:
@@ -58,7 +58,7 @@ Verification:
 * `npm audit --omit=optional`: pass — 0 vulnerabilities after the lockfile-only remediation.
 * `npm run release:check -- --strict --expected 1.4.0`: pass.
 * `git diff --check`: pass.
-* Fresh clone at `3f3cf8a`: tracked tree and tag restored with no untracked files; `npm ci --ignore-scripts`, `npm audit --omit=optional`, and `tsc -b` passed. The default clone install and scripts were blocked by the current host's application-control policy for newly downloaded `esbuild.exe`; with a temporary same-version host binary override, `npm test` (7 files / 38 tests), `npm run build`, and the `/veil-archive/` dev endpoint/manifest request passed.
+* Fresh clones at `3f3cf8a` and final `e66db91`: tracked tree, tag, README, and no-untracked state restored; `npm ci --ignore-scripts`, `npm audit --omit=optional`, and `tsc -b` passed. The default install was blocked by the current host's application-control policy for newly downloaded native tooling (`esbuild.exe` and, in the final clone, `rollup.win32-x64-msvc.node`), so clone-only test/build is `NOT REPRODUCED` here. A prior clone ran `npm test` (7 files / 38 tests), `npm run build`, and the `/veil-archive/` dev endpoint/manifest request only with a temporary same-version host-binary override.
 
 Notes:
 
