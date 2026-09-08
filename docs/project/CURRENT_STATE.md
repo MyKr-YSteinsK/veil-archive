@@ -1,6 +1,6 @@
 # CURRENT_STATE — The Veil Archive｜帷幕档案
 
-Mutable repository snapshot, reconciled from the real repository on 2026-08-27 (Asia/Shanghai). Current repository evidence owns the facts in this file; durable intent is in [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) and [`DECISIONS.md`](DECISIONS.md).
+Mutable repository snapshot, reconciled from the real repository on 2026-09-08 (Asia/Shanghai). Current repository evidence owns the facts in this file; durable intent is in [`PROJECT_BRIEF.md`](PROJECT_BRIEF.md) and [`DECISIONS.md`](DECISIONS.md).
 
 ## Repository identity
 
@@ -21,6 +21,7 @@ Mutable repository snapshot, reconciled from the real repository on 2026-08-27 (
 * Plan09 delivers the first formal `v1.4.0` release state: product and package mirrors are aligned, the canonical annotated tag is `v1.4.0`, and Pages/production evidence is verified externally; exact release SHA, workflow run, URL, and tag-object evidence remain in Git metadata and the delivery result rather than a self-invalidating latest-deployment field.
 * Plan10 checkpoint passed: production identity, manifest, Workbox app shell, source update chain, and data-safety boundaries show no known PWA blocker; lifecycle is promoted from Stabilization to Production with bounded residual risk for unreproduced installed-client/offline/real-device transitions.
 * Ignored local/generated material observed: `node_modules/`, `dist/`, `.idea/`, TypeScript build-info files, and `docs/dev-plan.md`. These are not source authority. `docs/dev-plan.md` exists locally but is not tracked by Git; it is deliberately preserved and must not be treated as an active plan.
+* Final new-computer migration audit on 2026-09-08: no untracked files or required ignored source/config files were found. No project `.env`, `.npmrc`, environment-variable usage, credential pattern, database file, `.gitmodules`, `.gitattributes`, or LFS-tracked file is present. The four-table `veilArchive` IndexedDB data and separately supplied plan documents remain outside Git and require separate private transfer when needed. The clone/install/test/build recovery path is documented in `README.md`.
 
 ## Implemented capabilities evidenced in the repository
 
@@ -76,6 +77,8 @@ Plan08 implementation verification on 2026-08-27: `npm ci` passed with 0 audit v
 Plan09 release verification on 2026-08-27: the release-owned version/changelog/mirror changes pass the strict `1.4.0` coherence check, and the full release gate (`npm ci`, `npm test`, `npm run build`, `npm audit --omit=optional`, and `git diff --check`) passes. The focused release commit, normal `main` push, annotated `v1.4.0` tag, remote peeled target, Pages workflow result, and production endpoint/version evidence are recorded in the final `TASK_RESULT` and GitHub/Git metadata; no dynamic deployment identifier is duplicated here.
 
 Plan10 lifecycle checkpoint verification on 2026-08-27: fresh Git/tag/release identity reconciliation passed with `main` clean and synchronized, `v1.4.0` annotated and peeled to release commit `36b28bd88c36f00d0f6e44c44bff563079014aa0`, and strict release coherence at `1.4.0`; production root, manifest, app JS/CSS, `sw.js`, Workbox runtime, and required icon assets returned HTTP 200 under cache-busting. The production manifest matches `/veil-archive/` `id`/`start_url`/`scope`, `display: standalone`, and the expected product name; the generated service worker contains the current 11-entry precache set, `clientsClaim`/`skipWaiting`, cleanup, and `NavigationRoute` fallback to `index.html`; production artifacts match the local release build by SHA-256. Source inspection confirmed root-mounted update prompt integration, `onNeedRefresh → ready → updateServiceWorker(true)`, failure recovery to `ready`, schema version 1, and no update-path data clearing or restore side effect. The Pages run and direct production endpoint evidence are external; old-installed-client update, true offline browser reload, and real mobile standalone checks are `NOT REPRODUCED`, so the checkpoint promotes lifecycle to Production with those bounded residual risks retained.
+
+Final migration-readiness verification on 2026-09-08: `npm ci`, `npm test` (7 files / 38 tests), `npm run build`, `npm audit --omit=optional` (0 vulnerabilities), strict `1.4.0` release coherence, and `git diff --check` passed. The only dependency change was an ordinary non-force lockfile remediation for the Browserslist build-tool chain; `package.json`, product version, runtime code, schema, PWA configuration, and deployment workflow were unchanged. A fresh clone from the pushed `origin/main` is the remaining final recovery proof.
 
 ## Delivery and PWA facts
 

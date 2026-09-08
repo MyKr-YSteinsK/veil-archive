@@ -29,6 +29,39 @@ Notes:
 - Optional known limitation or follow-up.
 ```
 
+## 2026-09-08 — Final new-computer migration readiness audit
+
+Type: fix + docs
+
+Summary:
+
+* Documented fresh-computer clone, dependency installation, test/build verification, local development, browser-data backup/restore, and safe computer-switching steps in `README.md`.
+* Corrected the recovery guidance to use the complete versioned JSON archive; CSV remains an inspection/export format.
+* Added ignore rules for local environment files, credentials/keystores, file databases, and the app's generated archive exports.
+* Applied the ordinary non-force npm audit remediation to the lockfile, updating the vulnerable Browserslist chain without changing product dependencies or source code.
+* Recorded the repository/local-material audit boundary in `CURRENT_STATE.md`.
+
+Files:
+
+* `README.md`
+* `.gitignore`
+* `docs/project/CURRENT_STATE.md`
+* `docs/patch-log.md`
+* `package-lock.json`
+
+Verification:
+
+* `npm ci`: pass; lockfile installation completed.
+* `npm test`: pass — 7 files and 38 tests.
+* `npm run build`: pass — TypeScript project build and Vite production bundle; existing chunk-size warning remains non-blocking.
+* `npm audit --omit=optional`: pass — 0 vulnerabilities after the lockfile-only remediation.
+* `npm run release:check -- --strict --expected 1.4.0`: pass.
+* `git diff --check`: pass.
+
+Notes:
+
+* Browser IndexedDB data and plan documents supplied outside the repository are intentionally not committed. They require separate private transfer when migrating.
+
 ## Baseline
 
 ## 2026-07-07 — Initial completed PWA baseline

@@ -12,3 +12,18 @@ work/
 /.idea/modules.xml
 /.idea/vcs.xml
 /.idea/veil-archive.iml
+
+# Local credentials, environment, databases, and archive exports
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.db
+*.sqlite
+*.sqlite3
+veil-archive-backup-*.json
+veil-archive-export-*.csv
