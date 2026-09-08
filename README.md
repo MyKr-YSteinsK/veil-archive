@@ -50,6 +50,8 @@ Vite 配置使用 GitHub Pages 子路径 `/veil-archive/`。开发服务器会�
 
    打开终端输出的地址，并访问 `/veil-archive/` 路径（通常为 `http://localhost:5173/veil-archive/`）。
 
+如果受管控的 Windows 电脑在 `npm ci` 时报 `spawn UNKNOWN`，并指向 `esbuild.exe`，通常是本机应用控制策略阻止了 npm 安装脚本启动新下载的构建工具。请让安全策略允许运行项目依赖中的 Node/npm 子进程，或改用组织允许的开发目录后重新执行 `npm ci`；`npm ci --ignore-scripts` 只适合诊断，不能作为完整安装方案。
+
 `node_modules/`、`dist/`、TypeScript 构建缓存和 IDE 设置均为本机可再生材料，不需要从旧电脑复制。
 
 ### 恢复本地档案数据
